@@ -13,3 +13,13 @@
     display: inline-block;
     margin: 10px;
 }
+.punto {
+    width: 12px;
+    height: 12px;
+    background: black;
+    border-radius: 50%;
+    position: absolute;
+}
+.ficha {
+    position: relative;
+}
