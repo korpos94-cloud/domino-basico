@@ -22,3 +22,4 @@ crearPunto(30, 75);
 crearPunto(45, 75);
 
 tablero.appendChild(ficha);
+
