@@ -8,9 +8,10 @@
     />
     <title>Dominó - Juego Profesional</title>
 
-    <!-- Estilos CSS -->
-    <link rel="stylesheet" href="src/css/tiles.css" />
+    <!-- Estilos CSS en orden correcto -->
     <link rel="stylesheet" href="src/css/layout.css" />
+    <link rel="stylesheet" href="src/css/tiles.css" />
+    <link rel="stylesheet" href="src/css/tiles-states.css" />
 
     <!-- Fuente moderna -->
     <link
@@ -77,11 +78,13 @@
             <span class="stat-item" id="turnIndicator">Turno: Jugador</span>
           </div>
         </div>
-        <div class="board-content" id="gameBoard">
-          <!-- Las fichas de la mesa se renderizarán aquí -->
-          <div class="empty-board-message" id="emptyBoard">
-            <div class="empty-icon">🎴</div>
-            <p>Coloca la primera ficha para comenzar</p>
+        <div class="board-content">
+          <div class="board-track" id="gameBoard">
+            <!-- Las fichas de la mesa se renderizarán aquí -->
+            <div class="empty-board-message" id="emptyBoard">
+              <div class="empty-icon">🎴</div>
+              <p>Coloca la primera ficha para comenzar</p>
+            </div>
           </div>
         </div>
       </section>
@@ -340,7 +343,7 @@
 
           setTimeout(() => {
             document.querySelectorAll('.tile-wrapper').forEach(tile => {
-              tile.style.boxShadow = ''
+              tile.classList.remove('highlighted')
             })
           }, 3000)
         }
