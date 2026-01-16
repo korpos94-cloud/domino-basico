@@ -79,7 +79,7 @@
           </div>
         </div>
         <div class="board-content">
-          <div class="board-track" id="gameBoard">
+          <div id="gameBoard">
             <!-- Las fichas de la mesa se renderizarán aquí -->
             <div class="empty-board-message" id="emptyBoard">
               <div class="empty-icon">🎴</div>
@@ -154,18 +154,22 @@
       </footer>
     </div>
 
-    <!-- Scripts del juego (NO MODIFICAR LÓGICA) -->
+    <!-- Scripts del juego -->
     <script type="module">
       // Importar módulos existentes
       import {
         initGame,
         playerPlay,
         playerDrawTile,
+        playerPassTurn,
         aiPlay,
         getGameState,
         restartGame,
         resetGame,
-        getCurrentPlayerPlayableTiles
+        getCurrentPlayerPlayableTiles,
+        getPendingPlay,
+        confirmPendingPlay,
+        cancelPendingPlay
       } from './src/js/game.js'
       import { initUI, updateUI, showMessage, highlightPlayableTiles } from './src/js/ui.js'
 
@@ -189,7 +193,7 @@
           board: document.getElementById('gameBoard'),
           playerHand: document.getElementById('playerHand'),
           opponentHand: document.getElementById('opponentHand'),
-          stock: null, // No se muestra en el nuevo diseño
+          stock: null,
           message: document.getElementById('gameMessage'),
           stats: document.getElementById('gameStats'),
           currentPlayer: document.getElementById('turnIndicator'),
@@ -227,7 +231,6 @@
             gameState.options.height = 180
           }
 
-          // Actualizar UI si el juego está activo
           if (gameState.phase === 'playing') {
             updateUI()
           }
@@ -235,6 +238,7 @@
       }
 
       // Manejar clic en ficha del jugador
+      // CORREGIDO: Gestión de selección de lado
       function handleTileClick(tileId) {
         const gameState = getGameState()
         if (!gameState || gameState.phase !== 'playing' || gameState.currentPlayer !== 'player') {
@@ -243,16 +247,25 @@
         }
 
         const playableTiles = getCurrentPlayerPlayableTiles()
-        const isPlayable = playableTiles.some(p => p.tile.id === tileId)
+        const playableInfo = playableTiles.find(p => p.tile.id === tileId)
 
-        if (!isPlayable) {
+        if (!playableInfo) {
           showMessage('Esta ficha no se puede jugar ahora', 'warning')
           return
         }
 
-        const success = playerPlay(tileId)
+        // Si la ficha puede jugarse en ambos lados, pedir confirmación
+        if (playableInfo.sides.length > 1) {
+          showSideSelectionDialog(tileId)
+          return
+        }
+
+        // Si solo hay un lado disponible, jugar automáticamente
+        const side = playableInfo.sides[0]
+        const success = playerPlay(tileId, side)
+        
         if (success) {
-          showMessage(`Jugaste la ficha`, 'success')
+          showMessage(`Jugaste la ficha en ${side === 'left' ? 'izquierda' : 'derecha'}`, 'success')
           updateUI()
 
           setTimeout(() => {
@@ -264,7 +277,126 @@
         }
       }
 
+      // Mostrar diálogo de selección de lado
+      function showSideSelectionDialog(tileId) {
+        const overlay = document.createElement('div')
+        overlay.id = 'side-selection-overlay'
+        overlay.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.7);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+        `
+
+        const dialog = document.createElement('div')
+        dialog.style.cssText = `
+          background: #1e293b;
+          padding: 30px;
+          border-radius: 16px;
+          text-align: center;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+          max-width: 400px;
+        `
+
+        dialog.innerHTML = `
+          <h3 style="color: #f8fafc; margin-bottom: 20px; font-size: 1.2rem;">
+            ¿En qué lado quieres jugar la ficha?
+          </h3>
+          <div style="display: flex; gap: 15px; justify-content: center;">
+            <button id="btn-left" style="
+              padding: 15px 30px;
+              background: linear-gradient(135deg, #10b981, #059669);
+              color: white;
+              border: none;
+              border-radius: 10px;
+              font-size: 1rem;
+              font-weight: 600;
+              cursor: pointer;
+              transition: transform 0.2s;
+            ">
+              ⬅️ Izquierda
+            </button>
+            <button id="btn-right" style="
+              padding: 15px 30px;
+              background: linear-gradient(135deg, #ef4444, #dc2626);
+              color: white;
+              border: none;
+              border-radius: 10px;
+              font-size: 1rem;
+              font-weight: 600;
+              cursor: pointer;
+              transition: transform 0.2s;
+            ">
+              Derecha ➡️
+            </button>
+          </div>
+          <button id="btn-cancel" style="
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: transparent;
+            color: #94a3b8;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            cursor: pointer;
+          ">
+            Cancelar
+          </button>
+        `
+
+        overlay.appendChild(dialog)
+        document.body.appendChild(overlay)
+
+        // Event listeners
+        document.getElementById('btn-left').onclick = () => {
+          document.body.removeChild(overlay)
+          const success = playerPlay(tileId, 'left')
+          if (success) {
+            showMessage('Jugaste la ficha en izquierda', 'success')
+            updateUI()
+            setTimeout(() => {
+              if (getGameState()?.currentPlayer === 'opponent') {
+                aiPlay()
+                updateUI()
+              }
+            }, 1000)
+          }
+        }
+
+        document.getElementById('btn-right').onclick = () => {
+          document.body.removeChild(overlay)
+          const success = playerPlay(tileId, 'right')
+          if (success) {
+            showMessage('Jugaste la ficha en derecha', 'success')
+            updateUI()
+            setTimeout(() => {
+              if (getGameState()?.currentPlayer === 'opponent') {
+                aiPlay()
+                updateUI()
+              }
+            }, 1000)
+          }
+        }
+
+        document.getElementById('btn-cancel').onclick = () => {
+          document.body.removeChild(overlay)
+        }
+
+        // Hover effects
+        const buttons = dialog.querySelectorAll('button:not(#btn-cancel)')
+        buttons.forEach(btn => {
+          btn.onmouseenter = () => btn.style.transform = 'scale(1.05)'
+          btn.onmouseleave = () => btn.style.transform = 'scale(1)'
+        })
+      }
+
       // Manejar robo de ficha
+      // CORREGIDO: Respeta nuevo flujo de turnos
       function handleDrawTile() {
         const gameState = getGameState()
         if (!gameState || gameState.currentPlayer !== 'player') {
@@ -279,9 +411,17 @@
 
         const drawnTile = playerDrawTile()
         if (drawnTile) {
-          showMessage('Robaste una ficha', 'success')
+          const playableTiles = getCurrentPlayerPlayableTiles()
+          
+          if (playableTiles.length > 0) {
+            showMessage('Robaste una ficha. Puedes jugar.', 'info')
+          } else {
+            showMessage('Robaste una ficha. No puedes jugar, turno pasado.', 'info')
+          }
+          
           updateUI()
 
+          // Solo ejecutar turno de IA si cambió el turno
           setTimeout(() => {
             if (getGameState()?.currentPlayer === 'opponent') {
               aiPlay()
@@ -292,6 +432,7 @@
       }
 
       // Manejar pasar turno
+      // CORREGIDO: Usa nueva función playerPassTurn()
       function handlePassTurn() {
         const gameState = getGameState()
         if (!gameState || gameState.currentPlayer !== 'player') {
@@ -299,27 +440,26 @@
           return
         }
 
-        const playableTiles = getCurrentPlayerPlayableTiles()
-        if (playableTiles.length > 0) {
-          showMessage('Tienes fichas jugables', 'warning')
-          return
-        }
+        const success = playerPassTurn()
+        
+        if (success) {
+          showMessage('Pasaste turno', 'info')
+          updateUI()
 
-        if (gameState.stock.length > 0) {
-          showMessage('Aún hay fichas en el pozo', 'warning')
-          return
-        }
-
-        gameState.currentPlayer = 'opponent'
-        showMessage('Pasaste turno', 'info')
-        updateUI()
-
-        setTimeout(() => {
-          if (getGameState()?.currentPlayer === 'opponent') {
-            aiPlay()
-            updateUI()
+          setTimeout(() => {
+            if (getGameState()?.currentPlayer === 'opponent') {
+              aiPlay()
+              updateUI()
+            }
+          }, 1000)
+        } else {
+          const playableTiles = getCurrentPlayerPlayableTiles()
+          if (playableTiles.length > 0) {
+            showMessage('Tienes fichas jugables', 'warning')
+          } else if (gameState.stock.length > 0) {
+            showMessage('Debes robar del pozo primero', 'warning')
           }
-        }, 1000)
+        }
       }
 
       // Mostrar pista
@@ -338,7 +478,7 @@
             showMessage('No tienes fichas jugables. Debes pasar.', 'info')
           }
         } else {
-          showMessage(`Tienes ${playableTiles.length} fichas jugables`, 'info')
+          showMessage(`Tienes ${playableTiles.length} ficha${playableTiles.length > 1 ? 's' : ''} jugable${playableTiles.length > 1 ? 's' : ''}`, 'info')
           highlightPlayableTiles()
 
           setTimeout(() => {
@@ -405,16 +545,6 @@
           if (turnIndicator) {
             turnIndicator.textContent =
               gameState.currentPlayer === 'player' ? 'Turno: Jugador' : 'Turno: IA'
-          }
-
-          // La IA juega automáticamente si es su turno
-          if (gameState.currentPlayer === 'opponent') {
-            setTimeout(() => {
-              if (getGameState()?.currentPlayer === 'opponent') {
-                aiPlay()
-                updateUI()
-              }
-            }, 2000)
           }
         }
       }

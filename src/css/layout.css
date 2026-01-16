@@ -72,6 +72,7 @@
 
 /* ===========================================
    ZONA 2: MESA DE JUEGO
+   CORREGIDO: Extremos fijos y visibles
    =========================================== */
 
 .board-area {
@@ -128,21 +129,127 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: hidden;
   padding: 8px;
   position: relative;
 }
 
-/* Track donde crecen las fichas (serpiente) */
-.board-track {
+/* NUEVO: Wrapper con extremos fijos */
+.board-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+}
+
+/* Paneles de extremos fijos (no se mueven con scroll) */
+.board-end-panel {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  min-width: 70px;
+  z-index: 10;
+}
+
+.board-end-panel.left-panel {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.board-end-panel.right-panel {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.end-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+}
+
+.end-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #f8fafc;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  min-width: 40px;
+  text-align: center;
+}
+
+.left-panel .end-value {
+  color: #10b981;
+}
+
+.right-panel .end-value {
+  color: #ef4444;
+}
+
+/* Área scrollable de fichas en la mesa */
+.board-tiles-scroll {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 6px;
-  flex-wrap: wrap;
-  max-width: 100%;
-  padding: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 4px;
+  scroll-behavior: smooth;
+}
+
+/* Scrollbar personalizado para área de fichas */
+.board-tiles-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.board-tiles-scroll::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 4px;
+}
+
+.board-tiles-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  border-radius: 4px;
+}
+
+.board-tiles-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+}
+
+/* Fichas en la mesa */
+.board-tile {
+  flex-shrink: 0;
+  margin: 2px;
+  transition: all 0.3s ease;
+}
+
+.board-tile.new-tile {
+  animation: tileAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes tileAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+  }
+  60% {
+    transform: scale(1.05) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 /* Mensaje de mesa vacía */
@@ -398,28 +505,6 @@
 }
 
 /* ===========================================
-   SCROLLBARS PERSONALIZADOS
-   =========================================== */
-
-.board-content::-webkit-scrollbar {
-  height: 8px;
-}
-
-.board-content::-webkit-scrollbar-track {
-  background: rgba(30, 41, 59, 0.5);
-  border-radius: 4px;
-}
-
-.board-content::-webkit-scrollbar-thumb {
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-  border-radius: 4px;
-}
-
-.board-content::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(90deg, #2563eb, #7c3aed);
-}
-
-/* ===========================================
    RESPONSIVE DESIGN
    =========================================== */
 
@@ -440,6 +525,15 @@
   .board-area {
     padding: 12px;
     min-height: 160px;
+  }
+
+  .board-end-panel {
+    min-width: 60px;
+    padding: 10px;
+  }
+
+  .end-value {
+    font-size: 1.6rem;
   }
 
   .control-panel {
@@ -491,6 +585,21 @@
   .board-area .board-stats {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .board-end-panel {
+    min-width: 50px;
+    padding: 8px;
+    gap: 4px;
+  }
+
+  .end-label {
+    font-size: 0.6rem;
+  }
+
+  .end-value {
+    font-size: 1.4rem;
+    min-width: 30px;
   }
 
   .control-panel {
@@ -554,6 +663,16 @@
     min-height: 120px;
   }
 
+  .board-end-panel {
+    min-width: 45px;
+    padding: 6px;
+  }
+
+  .end-value {
+    font-size: 1.2rem;
+    min-width: 25px;
+  }
+
   .control-btn {
     min-width: 60px;
     padding: 8px 10px;
@@ -573,6 +692,15 @@
 
   .board-area {
     min-height: 220px;
+  }
+
+  .board-end-panel {
+    min-width: 80px;
+    padding: 14px;
+  }
+
+  .end-value {
+    font-size: 2.4rem;
   }
 }
 
@@ -622,4 +750,3 @@
 .animate-slide-in {
   animation: slideIn 0.3s ease-out;
 }
-

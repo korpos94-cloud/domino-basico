@@ -9,6 +9,7 @@ import {
   getGameState,
   getCurrentPlayerPlayableTiles,
   getGameStats,
+  getPendingPlay,
 } from "./game.js";
 import { getPlayableTiles } from "./board.js";
 
@@ -84,7 +85,8 @@ export function updateUI() {
 }
 
 /**
- * Renderiza la mesa de juego
+ * Renderiza la mesa de juego con extremos fijos
+ * CORREGIDO: Muestra extremos de mesa de forma fija y visible
  */
 function updateBoard() {
   if (!domRefs.board) return;
@@ -94,26 +96,27 @@ function updateBoard() {
 
   if (!board || board.tiles.length === 0) {
     domRefs.board.innerHTML = `
-            <div class="empty-board">
-                <p>Mesa vacía</p>
-                <p class="hint">Coloca la primera ficha para comenzar</p>
+            <div class="empty-board-message">
+                <div class="empty-icon">🎴</div>
+                <p>Coloca la primera ficha para comenzar</p>
             </div>
         `;
     return;
   }
 
-  // Crear contenedor para la mesa
-  let boardHTML = '<div class="board-tiles">';
+  // Crear contenedor para la mesa con extremos fijos
+  let boardHTML = '<div class="board-wrapper">';
 
-  // Mostrar extremo izquierdo
-  if (board.leftValue !== null) {
-    boardHTML += `
-            <div class="board-end left-end">
-                <div class="end-value">${board.leftValue}</div>
-                <div class="end-label">Izquierda</div>
-            </div>
-        `;
-  }
+  // Panel de extremo izquierdo (fijo)
+  boardHTML += `
+        <div class="board-end-panel left-panel">
+            <div class="end-label">Izquierda</div>
+            <div class="end-value">${board.leftValue !== null ? board.leftValue : "-"}</div>
+        </div>
+    `;
+
+  // Contenedor scrollable de fichas
+  boardHTML += '<div class="board-tiles-scroll">';
 
   // Mostrar fichas en la mesa
   board.tiles.forEach((tile, index) => {
@@ -129,26 +132,21 @@ function updateBoard() {
                   ...uiConfig.tileSizes.board,
                   orientation: orientation,
                 })}
-                ${
-                  uiConfig.animations.enabled
-                    ? '<div class="tile-glow"></div>'
-                    : ""
-                }
             </div>
         `;
   });
 
-  // Mostrar extremo derecho
-  if (board.rightValue !== null) {
-    boardHTML += `
-            <div class="board-end right-end">
-                <div class="end-value">${board.rightValue}</div>
-                <div class="end-label">Derecha</div>
-            </div>
-        `;
-  }
+  boardHTML += "</div>"; // Cerrar board-tiles-scroll
 
-  boardHTML += "</div>";
+  // Panel de extremo derecho (fijo)
+  boardHTML += `
+        <div class="board-end-panel right-panel">
+            <div class="end-label">Derecha</div>
+            <div class="end-value">${board.rightValue !== null ? board.rightValue : "-"}</div>
+        </div>
+    `;
+
+  boardHTML += "</div>"; // Cerrar board-wrapper
   domRefs.board.innerHTML = boardHTML;
 
   // Añadir animaciones a las fichas recién colocadas
@@ -219,6 +217,7 @@ function updatePlayerHand() {
 
 /**
  * Renderiza la mano del oponente (oculta)
+ * CORREGIDO: Fichas diferenciadas por índice
  */
 function updateOpponentHand() {
   if (!domRefs.opponentHand) return;
@@ -228,15 +227,15 @@ function updateOpponentHand() {
 
   let handHTML = '<div class="opponent-hand-tiles">';
 
-  // Mostrar fichas boca abajo
-  hand.forEach((tile) => {
+  // Mostrar fichas boca abajo diferenciadas
+  hand.forEach((tile, index) => {
     handHTML += `
-            <div class="opponent-tile" data-id="${tile.id}">
+            <div class="opponent-tile" data-id="${tile.id}" data-index="${index}">
                 ${renderTile(
                   {
                     a: 0,
                     b: 0,
-                    id: "hidden",
+                    id: `hidden-${index}`,
                     isDouble: false,
                     orientation: "vertical",
                   },
@@ -322,6 +321,7 @@ function updateStock() {
 
 /**
  * Actualiza el mensaje de estado
+ * CORREGIDO: Mensajes más informativos y contextuales
  */
 function updateMessage() {
   if (!domRefs.message) return;
@@ -339,23 +339,41 @@ function updateMessage() {
     case "playing":
       if (gameState.currentPlayer === "player") {
         const playable = getCurrentPlayerPlayableTiles();
-        if (playable.length > 0) {
-          message = "Tu turno - Selecciona una ficha para jugar";
+        const pendingPlay = getPendingPlay();
+        
+        if (pendingPlay) {
+          message = "Elige un lado: Izquierda o Derecha";
+          messageType = "warning";
+        } else if (playable.length > 0) {
+          message = `Tu turno - ${playable.length} ficha${playable.length > 1 ? 's' : ''} jugable${playable.length > 1 ? 's' : ''}`;
+        } else if (gameState.stock.length > 0) {
+          message = "Tu turno - Sin fichas jugables. Debes robar del pozo";
+          messageType = "warning";
         } else {
-          message =
-            "Tu turno - No tienes fichas jugables. Roba del pozo o pasa turno";
+          message = "Tu turno - Sin fichas jugables. Debes pasar turno";
           messageType = "warning";
         }
       } else {
-        message = "Turno del oponente...";
+        // Mostrar última acción del oponente
+        if (gameState.lastAction.includes("opponent_played")) {
+          message = "Oponente jugó una ficha";
+        } else if (gameState.lastAction === "opponent_drew_tile") {
+          message = "Oponente robó una ficha";
+        } else if (gameState.lastAction === "opponent_drew_and_passed") {
+          message = "Oponente robó y pasó turno";
+        } else if (gameState.lastAction === "opponent_passed") {
+          message = "Oponente pasó turno";
+        } else {
+          message = "Turno del oponente...";
+        }
       }
       break;
     case "finished":
       if (gameState.winner === "player") {
-        message = "🎉 ¡Has ganado! 🎉";
+        message = `🎉 ¡Has ganado! +${gameState.playerScore} puntos`;
         messageType = "success";
       } else if (gameState.winner === "opponent") {
-        message = "😔 El oponente ganó. ¡Inténtalo de nuevo!";
+        message = `😔 El oponente ganó. +${gameState.opponentScore} puntos`;
         messageType = "error";
       } else {
         message = "🤝 Empate";
