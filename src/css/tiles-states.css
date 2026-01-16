@@ -1,0 +1,387 @@
+/* 
+ * DOMINÓ - Tiles States CSS
+ * Estados hover, playable, selected
+ * Implementa: 6d (levantarse + borde + brillo)
+ */
+
+/* ===========================================
+   ESTADO: PLAYABLE (ficha jugable)
+   =========================================== */
+
+.tile-playable {
+  cursor: grab;
+  position: relative;
+}
+
+/* Indicador visual de ficha jugable */
+.tile-playable::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(16, 185, 129, 0.15),
+    transparent
+  );
+  border-radius: 14px;
+  z-index: -1;
+  animation: playableGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes playableGlow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+/* Borde brillante en fichas jugables */
+.tile-playable .domino-tile {
+  box-shadow: 
+    0 0 0 2px rgba(16, 185, 129, 0.4),
+    0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ===========================================
+   HOVER: FICHAS DEL JUGADOR (6d implementado)
+   =========================================== */
+
+/* Solo hover si es turno del jugador */
+.player-hand-area .tile-wrapper:hover {
+  z-index: 100 !important;
+  transform: translateY(-12px) scale(1.05);
+}
+
+.player-hand-area .tile-wrapper:hover .domino-tile {
+  filter: 
+    drop-shadow(0 12px 24px rgba(0, 0, 0, 0.35))
+    drop-shadow(0 0 20px rgba(59, 130, 246, 0.4));
+  box-shadow: 
+    0 0 0 3px rgba(59, 130, 246, 0.6),
+    0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+/* Efecto extra en fichas jugables */
+.player-hand-area .tile-playable:hover .domino-tile {
+  filter: 
+    drop-shadow(0 12px 24px rgba(0, 0, 0, 0.4))
+    drop-shadow(0 0 25px rgba(16, 185, 129, 0.5));
+  box-shadow: 
+    0 0 0 3px rgba(16, 185, 129, 0.7),
+    0 0 25px rgba(16, 185, 129, 0.4);
+}
+
+/* Animación de brillo en hover */
+@keyframes hoverShine {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.player-hand-area .tile-wrapper:hover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: hoverShine 1.5s ease-in-out infinite;
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+/* ===========================================
+   ESTADO: SELECTED (ficha seleccionada)
+   =========================================== */
+
+.tile-selected,
+.domino-tile.selected {
+  transform: translateY(-8px) scale(1.03);
+  z-index: 150 !important;
+}
+
+.tile-selected .domino-tile {
+  filter: 
+    drop-shadow(0 0 20px rgba(59, 130, 246, 0.8))
+    drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
+  box-shadow: 
+    0 0 0 4px rgba(59, 130, 246, 0.9),
+    0 0 30px rgba(59, 130, 246, 0.5);
+  animation: selectedPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes selectedPulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 0 4px rgba(59, 130, 246, 0.9),
+      0 0 25px rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 4px rgba(59, 130, 246, 1),
+      0 0 35px rgba(59, 130, 246, 0.6);
+  }
+}
+
+/* ===========================================
+   HOVER: FICHAS EN LA MESA
+   =========================================== */
+
+.board-track .tile-wrapper:hover {
+  transform: scale(1.08);
+  z-index: 50;
+}
+
+.board-track .tile-wrapper:hover .domino-tile {
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
+  box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.5);
+}
+
+/* ===========================================
+   INDICADOR VISUAL DE PLAYABLE
+   =========================================== */
+
+/* Punto indicador verde en esquina */
+.playable-indicator {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  animation: indicatorPulse 1.5s ease-in-out infinite;
+  z-index: 10;
+}
+
+@keyframes indicatorPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+/* Responsive para el indicador */
+@media (max-width: 600px) {
+  .playable-indicator {
+    width: 10px;
+    height: 10px;
+    top: 3px;
+    right: 3px;
+  }
+}
+
+@media (max-width: 400px) {
+  .playable-indicator {
+    width: 8px;
+    height: 8px;
+    top: 2px;
+    right: 2px;
+    border: 1px solid white;
+  }
+}
+
+/* ===========================================
+   HOVER: FICHAS DEL OPONENTE (sin interacción)
+   =========================================== */
+
+.ai-hand-area .tile-wrapper:hover {
+  transform: none;
+  cursor: default;
+}
+
+/* ===========================================
+   ESTADO: HIGHLIGHTED (resaltado temporal)
+   =========================================== */
+
+.tile-wrapper.highlighted {
+  animation: highlightFlash 0.8s ease-in-out 3;
+}
+
+@keyframes highlightFlash {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.3);
+  }
+}
+
+.tile-wrapper.highlighted .domino-tile {
+  box-shadow: 
+    0 0 0 3px rgba(245, 158, 11, 0.8),
+    0 0 20px rgba(245, 158, 11, 0.5);
+}
+
+/* ===========================================
+   ESTADO: DISABLED (ficha no jugable)
+   =========================================== */
+
+.tile-wrapper.tile-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tile-wrapper.tile-disabled:hover {
+  transform: none !important;
+  z-index: 1 !important;
+}
+
+.tile-wrapper.tile-disabled .domino-tile {
+  filter: grayscale(0.8) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+.tile-wrapper.tile-disabled::before {
+  display: none;
+}
+
+/* ===========================================
+   ACTIVE (al hacer clic)
+   =========================================== */
+
+.player-hand-area .tile-wrapper:active {
+  transform: translateY(-8px) scale(1.02);
+}
+
+.player-hand-area .tile-playable:active {
+  cursor: grabbing;
+}
+
+/* ===========================================
+   TRANSICIONES SUAVES
+   =========================================== */
+
+.tile-wrapper {
+  transition: 
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    z-index 0s;
+}
+
+.domino-tile {
+  transition: 
+    filter 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===========================================
+   EFECTOS DE TILE-GLOW (opcional, si JS lo añade)
+   =========================================== */
+
+.tile-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle,
+    rgba(59, 130, 246, 0.3) 0%,
+    transparent 70%
+  );
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.tile-wrapper:hover .tile-glow {
+  opacity: 1;
+}
+
+/* ===========================================
+   RESPONSIVE: AJUSTES DE EFECTOS EN MÓVILES
+   =========================================== */
+
+@media (max-width: 600px) {
+  /* Reducir intensidad de efectos en móvil */
+  .player-hand-area .tile-wrapper:hover {
+    transform: translateY(-8px) scale(1.03);
+  }
+
+  .tile-playable::before {
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+  }
+
+  .player-hand-area .tile-wrapper:hover .domino-tile {
+    filter: 
+      drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3))
+      drop-shadow(0 0 12px rgba(59, 130, 246, 0.3));
+    box-shadow: 
+      0 0 0 2px rgba(59, 130, 246, 0.5),
+      0 0 15px rgba(59, 130, 246, 0.2);
+  }
+}
+
+@media (max-width: 400px) {
+  /* Efectos aún más sutiles en pantallas muy pequeñas */
+  .player-hand-area .tile-wrapper:hover {
+    transform: translateY(-6px) scale(1.02);
+  }
+
+  .player-hand-area .tile-wrapper:hover .domino-tile {
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.25));
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+  }
+}
+
+/* ===========================================
+   ACCESIBILIDAD
+   =========================================== */
+
+/* Reducir animaciones para usuarios con preferencia */
+@media (prefers-reduced-motion: reduce) {
+  .tile-playable::before,
+  .playable-indicator,
+  .tile-selected .domino-tile,
+  .tile-wrapper.highlighted,
+  .player-hand-area .tile-wrapper:hover::after {
+    animation: none;
+  }
+
+  .tile-wrapper,
+  .domino-tile {
+    transition: none;
+  }
+}
+
+/* Focus visible para teclado */
+.tile-wrapper:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+.tile-wrapper:focus-visible .domino-tile {
+  box-shadow: 
+    0 0 0 3px rgba(59, 130, 246, 0.6),
+    0 4px 12px rgba(0, 0, 0, 0.3);
+}
+

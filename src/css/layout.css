@@ -1,0 +1,752 @@
+/* 
+ * DOMINÓ - Layout CSS
+ * Estructura general del juego - NO incluye estilos de fichas
+ * Compatible con Windows y Android
+ */
+
+/* ===========================================
+   CONTENEDOR PRINCIPAL
+   =========================================== */
+
+.game-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0f172a 0%, #1a1a2e 100%);
+  padding: 12px;
+  gap: 12px;
+}
+
+/* ===========================================
+   ZONA 1: MANO DE LA IA (OPONENTE)
+   =========================================== */
+
+.ai-hand-area {
+  flex: 0 0 auto;
+  min-height: 100px;
+  max-height: 120px;
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-hand-area .hand-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(239, 68, 68, 0.1);
+}
+
+.ai-hand-area .hand-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-hand-area .hand-count {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.ai-hand-area .hand-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+  min-height: 60px;
+}
+
+/* ===========================================
+   ZONA 2: MESA DE JUEGO
+   CORREGIDO: Extremos fijos y visibles
+   =========================================== */
+
+.board-area {
+  flex: 1;
+  min-height: 180px;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.board-area .board-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.board-area .board-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #3b82f6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.board-area .board-stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.board-area .stat-item {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  background: rgba(30, 41, 59, 0.9);
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  white-space: nowrap;
+}
+
+/* Contenedor visual de la mesa */
+.board-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 8px;
+  position: relative;
+}
+
+/* NUEVO: Wrapper con extremos fijos */
+.board-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+}
+
+/* Paneles de extremos fijos (no se mueven con scroll) */
+.board-end-panel {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  min-width: 70px;
+  z-index: 10;
+}
+
+.board-end-panel.left-panel {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.board-end-panel.right-panel {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.end-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+}
+
+.end-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #f8fafc;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  min-width: 40px;
+  text-align: center;
+}
+
+.left-panel .end-value {
+  color: #10b981;
+}
+
+.right-panel .end-value {
+  color: #ef4444;
+}
+
+/* Área scrollable de fichas en la mesa */
+.board-tiles-scroll {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 4px;
+  scroll-behavior: smooth;
+}
+
+/* Scrollbar personalizado para área de fichas */
+.board-tiles-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.board-tiles-scroll::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 4px;
+}
+
+.board-tiles-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  border-radius: 4px;
+}
+
+.board-tiles-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+}
+
+/* Fichas en la mesa */
+.board-tile {
+  flex-shrink: 0;
+  margin: 2px;
+  transition: all 0.3s ease;
+}
+
+.board-tile.new-tile {
+  animation: tileAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes tileAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+  }
+  60% {
+    transform: scale(1.05) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Mensaje de mesa vacía */
+.empty-board-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 30px;
+  text-align: center;
+  color: #64748b;
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  opacity: 0.5;
+}
+
+.empty-board-message p {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+/* ===========================================
+   ZONA 3: MANO DEL JUGADOR
+   =========================================== */
+
+.player-hand-area {
+  flex: 0 0 auto;
+  min-height: 130px;
+  max-height: 150px;
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.player-hand-area .hand-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+.player-hand-area .hand-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-hand-area .hand-count {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.player-hand-area .hand-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+  min-height: 80px;
+  padding: 4px 0;
+}
+
+/* ===========================================
+   ZONA 4: PANEL DE CONTROL
+   =========================================== */
+
+.control-panel {
+  flex: 0 0 auto;
+  background: rgba(15, 23, 42, 0.95);
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  backdrop-filter: blur(10px);
+}
+
+/* Botones de control */
+.control-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.control-btn {
+  flex: 1 1 auto;
+  min-width: 110px;
+  max-width: 180px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.control-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s, height 0.4s;
+}
+
+.control-btn:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+.control-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.control-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.control-btn:not(:disabled):active {
+  transform: translateY(0);
+}
+
+.btn-draw {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+}
+
+.btn-pass {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.btn-hint {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.btn-restart {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+}
+
+.btn-icon {
+  font-size: 1.1rem;
+  display: inline-block;
+}
+
+.btn-text {
+  font-weight: 600;
+}
+
+/* Área de mensajes */
+.game-messages {
+  background: rgba(30, 41, 59, 0.8);
+  border-radius: 10px;
+  padding: 14px;
+  border-left: 4px solid #3b82f6;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* Estadísticas del juego */
+.game-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 10px;
+  padding: 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.stat-row {
+  display: contents;
+}
+
+.game-stats .stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background: rgba(30, 41, 59, 0.8);
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  transition: all 0.2s ease;
+}
+
+.game-stats .stat-item:hover {
+  background: rgba(30, 41, 59, 0.95);
+  transform: translateY(-2px);
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.player-score .stat-value {
+  color: #10b981;
+}
+
+.opponent-score .stat-value {
+  color: #ef4444;
+}
+
+/* ===========================================
+   RESPONSIVE DESIGN
+   =========================================== */
+
+/* Tablets (900px o menos) */
+@media (max-width: 900px) {
+  .game-container {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .ai-hand-area,
+  .player-hand-area {
+    min-height: 90px;
+    max-height: 110px;
+    padding: 8px 10px;
+  }
+
+  .board-area {
+    padding: 12px;
+    min-height: 160px;
+  }
+
+  .board-end-panel {
+    min-width: 60px;
+    padding: 10px;
+  }
+
+  .end-value {
+    font-size: 1.6rem;
+  }
+
+  .control-panel {
+    padding: 12px;
+  }
+
+  .control-btn {
+    min-width: 95px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+  }
+
+  .game-messages {
+    padding: 12px;
+    min-height: 45px;
+    font-size: 0.9rem;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+  }
+}
+
+/* Móviles (600px o menos) */
+@media (max-width: 600px) {
+  .game-container {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .ai-hand-area,
+  .player-hand-area {
+    min-height: 80px;
+    max-height: 95px;
+    padding: 8px;
+  }
+
+  .board-area {
+    padding: 10px;
+    min-height: 140px;
+  }
+
+  .board-area .board-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .board-area .board-stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .board-end-panel {
+    min-width: 50px;
+    padding: 8px;
+    gap: 4px;
+  }
+
+  .end-label {
+    font-size: 0.6rem;
+  }
+
+  .end-value {
+    font-size: 1.4rem;
+    min-width: 30px;
+  }
+
+  .control-panel {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .control-buttons {
+    gap: 6px;
+  }
+
+  .control-btn {
+    min-width: 70px;
+    padding: 9px 12px;
+    font-size: 0.8rem;
+  }
+
+  .btn-text {
+    display: none;
+  }
+
+  .btn-icon {
+    font-size: 1.2rem;
+  }
+
+  .game-messages {
+    padding: 10px;
+    min-height: 40px;
+    font-size: 0.85rem;
+  }
+
+  .game-stats {
+    grid-template-columns: 1fr;
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .stat-item {
+    padding: 8px;
+  }
+
+  .stat-value {
+    font-size: 1.1rem;
+  }
+}
+
+/* Móviles pequeños (400px o menos) */
+@media (max-width: 400px) {
+  .game-container {
+    padding: 6px;
+    gap: 6px;
+  }
+
+  .ai-hand-area,
+  .player-hand-area {
+    min-height: 70px;
+    max-height: 85px;
+  }
+
+  .board-area {
+    min-height: 120px;
+  }
+
+  .board-end-panel {
+    min-width: 45px;
+    padding: 6px;
+  }
+
+  .end-value {
+    font-size: 1.2rem;
+    min-width: 25px;
+  }
+
+  .control-btn {
+    min-width: 60px;
+    padding: 8px 10px;
+  }
+
+  .btn-icon {
+    font-size: 1rem;
+  }
+}
+
+/* Pantallas grandes (1200px o más) */
+@media (min-width: 1200px) {
+  .game-container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .board-area {
+    min-height: 220px;
+  }
+
+  .board-end-panel {
+    min-width: 80px;
+    padding: 14px;
+  }
+
+  .end-value {
+    font-size: 2.4rem;
+  }
+}
+
+/* ===========================================
+   UTILIDADES
+   =========================================== */
+
+.hidden {
+  display: none !important;
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* Estados del juego */
+.game-ended .control-btn:not(.btn-restart) {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Animaciones globales */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
