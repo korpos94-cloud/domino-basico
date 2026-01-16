@@ -2,15 +2,433 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <title>Domino Básico</title>
-    <link rel="stylesheet" href="src/css/style.css" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Dominó - Juego Profesional</title>
+
+    <!-- Estilos CSS -->
+    <link rel="stylesheet" href="src/css/tiles.css" />
+    <link rel="stylesheet" href="src/css/layout.css" />
+
+    <!-- Fuente moderna -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* Reset básico */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+        font-family: 'Inter', sans-serif;
+      }
+
+      /* Variables de color */
+      :root {
+        --primary-color: #3b82f6;
+        --secondary-color: #8b5cf6;
+        --success-color: #10b981;
+        --danger-color: #ef4444;
+        --warning-color: #f59e0b;
+        --dark-bg: #0f172a;
+        --card-bg: #1e293b;
+        --border-color: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+      }
+
+      /* Fondo general */
+      body {
+        background: var(--dark-bg);
+        color: var(--text-primary);
+      }
+    </style>
   </head>
   <body>
-    <h1>Domino Básico</h1>
+    <!-- Contenedor principal del juego -->
+    <div class="game-container" id="gameContainer">
+      <!-- Zona 1: Mano de la IA -->
+      <section class="ai-hand-area" id="aiHandArea">
+        <div class="hand-header">
+          <h3 class="hand-title">🤖 Oponente (IA)</h3>
+          <div class="hand-count" id="opponentCount">7 fichas</div>
+        </div>
+        <div class="hand-content" id="opponentHand">
+          <!-- Las fichas de la IA se renderizarán aquí -->
+        </div>
+      </section>
 
-    <div id="tablero"></div>
+      <!-- Zona 2: Mesa de juego -->
+      <section class="board-area" id="boardArea">
+        <div class="board-header">
+          <h2 class="board-title">🎲 Mesa de Dominó</h2>
+          <div class="board-stats">
+            <span class="stat-item" id="boardCount">0 fichas</span>
+            <span class="stat-item" id="turnIndicator">Turno: Jugador</span>
+          </div>
+        </div>
+        <div class="board-content" id="gameBoard">
+          <!-- Las fichas de la mesa se renderizarán aquí -->
+          <div class="empty-board-message" id="emptyBoard">
+            <div class="empty-icon">🎴</div>
+            <p>Coloca la primera ficha para comenzar</p>
+          </div>
+        </div>
+      </section>
 
-    <script src="src/js/script.js"></script>
+      <!-- Zona 3: Mano del jugador -->
+      <section class="player-hand-area" id="playerHandArea">
+        <div class="hand-header">
+          <h3 class="hand-title">👤 Tu Mano</h3>
+          <div class="hand-count" id="playerCount">7 fichas</div>
+        </div>
+        <div class="hand-content" id="playerHand">
+          <!-- Las fichas del jugador se renderizarán aquí -->
+        </div>
+      </section>
+
+      <!-- Zona 4: Panel de control -->
+      <footer class="control-panel" id="controlPanel">
+        <!-- Botones de acción -->
+        <div class="control-buttons">
+          <button class="control-btn btn-draw" id="btn-draw" onclick="handleDrawTile()">
+            <span class="btn-icon">🎴</span>
+            <span class="btn-text">Robar</span>
+          </button>
+
+          <button class="control-btn btn-pass" id="btn-pass" onclick="handlePassTurn()">
+            <span class="btn-icon">⏭️</span>
+            <span class="btn-text">Pasar</span>
+          </button>
+
+          <button class="control-btn btn-hint" id="btn-hint" onclick="handleHint()">
+            <span class="btn-icon">💡</span>
+            <span class="btn-text">Pista</span>
+          </button>
+
+          <button class="control-btn btn-restart" id="btn-restart" onclick="handleNewGame()">
+            <span class="btn-icon">🔄</span>
+            <span class="btn-text">Reiniciar</span>
+          </button>
+        </div>
+
+        <!-- Área de mensajes -->
+        <div class="game-messages" id="gameMessage">Preparando juego...</div>
+
+        <!-- Estadísticas del juego -->
+        <div class="game-stats" id="gameStats">
+          <div class="stat-row">
+            <div class="stat-item">
+              <span class="stat-label">Ronda</span>
+              <span class="stat-value" id="roundNumber">1</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Pozo</span>
+              <span class="stat-value" id="stockCount">14</span>
+            </div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-item player-score">
+              <span class="stat-label">Tus puntos</span>
+              <span class="stat-value" id="playerScore">0</span>
+            </div>
+            <div class="stat-item opponent-score">
+              <span class="stat-label">IA puntos</span>
+              <span class="stat-value" id="opponentScore">0</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Scripts del juego (NO MODIFICAR LÓGICA) -->
+    <script type="module">
+      // Importar módulos existentes
+      import {
+        initGame,
+        playerPlay,
+        playerDrawTile,
+        aiPlay,
+        getGameState,
+        restartGame,
+        resetGame,
+        getCurrentPlayerPlayableTiles
+      } from './src/js/game.js'
+      import { initUI, updateUI, showMessage, highlightPlayableTiles } from './src/js/ui.js'
+
+      // Variables globales para acceso desde HTML
+      window.handleTileClick = handleTileClick
+      window.handleDrawTile = handleDrawTile
+      window.handlePassTurn = handlePassTurn
+      window.handleHint = handleHint
+      window.handleNewGame = handleNewGame
+      window.handleResetGame = handleResetGame
+
+      // Estado del juego
+      let gameInterval = null
+
+      // Inicializar cuando se carga la página
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('🎮 Iniciando Dominó...')
+
+        // Inicializar UI con referencias DOM actualizadas
+        initUI({
+          board: document.getElementById('gameBoard'),
+          playerHand: document.getElementById('playerHand'),
+          opponentHand: document.getElementById('opponentHand'),
+          stock: null, // No se muestra en el nuevo diseño
+          message: document.getElementById('gameMessage'),
+          stats: document.getElementById('gameStats'),
+          currentPlayer: document.getElementById('turnIndicator'),
+          playerScore: document.getElementById('playerScore'),
+          opponentScore: document.getElementById('opponentScore')
+        })
+
+        // Iniciar nueva partida
+        handleNewGame()
+
+        // Iniciar intervalo para actualizaciones
+        gameInterval = setInterval(updateGameState, 1000)
+
+        // Configurar escalado automático en redimensionamiento
+        window.addEventListener('resize', autoScale)
+        autoScale()
+
+        console.log('✅ Juego inicializado')
+      })
+
+      // Función de escalado automático
+      function autoScale() {
+        const w = window.innerWidth
+        const gameState = getGameState()
+
+        if (gameState && gameState.options) {
+          if (w < 500) {
+            gameState.options.width = 50
+            gameState.options.height = 100
+          } else if (w < 900) {
+            gameState.options.width = 70
+            gameState.options.height = 140
+          } else {
+            gameState.options.width = 90
+            gameState.options.height = 180
+          }
+
+          // Actualizar UI si el juego está activo
+          if (gameState.phase === 'playing') {
+            updateUI()
+          }
+        }
+      }
+
+      // Manejar clic en ficha del jugador
+      function handleTileClick(tileId) {
+        const gameState = getGameState()
+        if (!gameState || gameState.phase !== 'playing' || gameState.currentPlayer !== 'player') {
+          showMessage('No es tu turno', 'warning')
+          return
+        }
+
+        const playableTiles = getCurrentPlayerPlayableTiles()
+        const isPlayable = playableTiles.some(p => p.tile.id === tileId)
+
+        if (!isPlayable) {
+          showMessage('Esta ficha no se puede jugar ahora', 'warning')
+          return
+        }
+
+        const success = playerPlay(tileId)
+        if (success) {
+          showMessage(`Jugaste la ficha`, 'success')
+          updateUI()
+
+          setTimeout(() => {
+            if (getGameState()?.currentPlayer === 'opponent') {
+              aiPlay()
+              updateUI()
+            }
+          }, 1000)
+        }
+      }
+
+      // Manejar robo de ficha
+      function handleDrawTile() {
+        const gameState = getGameState()
+        if (!gameState || gameState.currentPlayer !== 'player') {
+          showMessage('No puedes robar ahora', 'warning')
+          return
+        }
+
+        if (gameState.stock.length === 0) {
+          showMessage('El pozo está vacío', 'warning')
+          return
+        }
+
+        const drawnTile = playerDrawTile()
+        if (drawnTile) {
+          showMessage('Robaste una ficha', 'success')
+          updateUI()
+
+          setTimeout(() => {
+            if (getGameState()?.currentPlayer === 'opponent') {
+              aiPlay()
+              updateUI()
+            }
+          }, 1000)
+        }
+      }
+
+      // Manejar pasar turno
+      function handlePassTurn() {
+        const gameState = getGameState()
+        if (!gameState || gameState.currentPlayer !== 'player') {
+          showMessage('No es tu turno', 'warning')
+          return
+        }
+
+        const playableTiles = getCurrentPlayerPlayableTiles()
+        if (playableTiles.length > 0) {
+          showMessage('Tienes fichas jugables', 'warning')
+          return
+        }
+
+        if (gameState.stock.length > 0) {
+          showMessage('Aún hay fichas en el pozo', 'warning')
+          return
+        }
+
+        gameState.currentPlayer = 'opponent'
+        showMessage('Pasaste turno', 'info')
+        updateUI()
+
+        setTimeout(() => {
+          if (getGameState()?.currentPlayer === 'opponent') {
+            aiPlay()
+            updateUI()
+          }
+        }, 1000)
+      }
+
+      // Mostrar pista
+      function handleHint() {
+        const gameState = getGameState()
+        if (!gameState || gameState.currentPlayer !== 'player') {
+          showMessage('No es tu turno', 'warning')
+          return
+        }
+
+        const playableTiles = getCurrentPlayerPlayableTiles()
+        if (playableTiles.length === 0) {
+          if (gameState.stock.length > 0) {
+            showMessage('No tienes fichas jugables. Debes robar.', 'info')
+          } else {
+            showMessage('No tienes fichas jugables. Debes pasar.', 'info')
+          }
+        } else {
+          showMessage(`Tienes ${playableTiles.length} fichas jugables`, 'info')
+          highlightPlayableTiles()
+
+          setTimeout(() => {
+            document.querySelectorAll('.tile-wrapper').forEach(tile => {
+              tile.style.boxShadow = ''
+            })
+          }, 3000)
+        }
+      }
+
+      // Iniciar nueva partida
+      function handleNewGame() {
+        if (gameInterval) clearInterval(gameInterval)
+
+        initGame({
+          tilesPerPlayer: 7,
+          startingPlayer: 'random',
+          enableHints: true
+        })
+
+        showMessage('¡Nueva partida!', 'success')
+        updateUI()
+
+        const gameState = getGameState()
+        if (gameState?.currentPlayer === 'opponent') {
+          setTimeout(() => {
+            aiPlay()
+            updateUI()
+          }, 1500)
+        }
+
+        gameInterval = setInterval(updateGameState, 1000)
+      }
+
+      // Reiniciar completamente
+      function handleResetGame() {
+        if (confirm('¿Reiniciar todo el juego?')) {
+          handleNewGame()
+        }
+      }
+
+      // Actualizar estado del juego
+      function updateGameState() {
+        const gameState = getGameState()
+        if (!gameState) return
+
+        if (gameState.phase === 'playing') {
+          updateUI()
+
+          // Actualizar contadores
+          const playerCount = document.getElementById('playerCount')
+          const opponentCount = document.getElementById('opponentCount')
+          const boardCount = document.getElementById('boardCount')
+          const stockCount = document.getElementById('stockCount')
+          const turnIndicator = document.getElementById('turnIndicator')
+          const roundNumber = document.getElementById('roundNumber')
+
+          if (playerCount) playerCount.textContent = `${gameState.playerHand.length} fichas`
+          if (opponentCount) opponentCount.textContent = `${gameState.opponentHand.length} fichas`
+          if (boardCount) boardCount.textContent = `${gameState.board.tiles.length} fichas`
+          if (stockCount) stockCount.textContent = gameState.stock.length
+          if (roundNumber) roundNumber.textContent = gameState.round || 1
+
+          if (turnIndicator) {
+            turnIndicator.textContent =
+              gameState.currentPlayer === 'player' ? 'Turno: Jugador' : 'Turno: IA'
+          }
+
+          // La IA juega automáticamente si es su turno
+          if (gameState.currentPlayer === 'opponent') {
+            setTimeout(() => {
+              if (getGameState()?.currentPlayer === 'opponent') {
+                aiPlay()
+                updateUI()
+              }
+            }, 2000)
+          }
+        }
+      }
+
+      // Limpiar al salir
+      window.addEventListener('beforeunload', () => {
+        if (gameInterval) clearInterval(gameInterval)
+      })
+
+      // Exponer funciones para debugging
+      window.dominoGame = {
+        getGameState,
+        handleTileClick,
+        handleDrawTile,
+        handleNewGame,
+        updateUI
+      }
+    </script>
   </body>
 </html>
-

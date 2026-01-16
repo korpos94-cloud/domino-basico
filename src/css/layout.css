@@ -1,0 +1,728 @@
+/* 
+ * Dominó - Layout CSS
+ * Diseño responsive sin scroll vertical
+ * Compatible con PC y Android
+ */
+
+/* ===========================================
+   CONTENEDOR PRINCIPAL
+   =========================================== */
+
+.game-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0f172a 0%, #1a1a2e 100%);
+  padding: 12px;
+  gap: 12px;
+}
+
+/* ===========================================
+   ZONA 1: MANO DE LA IA
+   =========================================== */
+
+.ai-hand-area {
+  flex: 0 0 auto;
+  min-height: 120px;
+  max-height: 140px;
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  border-radius: 12px;
+  padding: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-hand-area .hand-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(239, 68, 68, 0.1);
+}
+
+.ai-hand-area .hand-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-hand-area .hand-count {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.ai-hand-area .hand-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+  min-height: 90px;
+  padding: 4px;
+}
+
+/* ===========================================
+   ZONA 2: MESA DE JUEGO
+   =========================================== */
+
+.board-area {
+  flex: 1;
+  min-height: 200px;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 16px;
+  padding: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.board-area .board-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.board-area .board-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #3b82f6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.board-area .board-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.board-area .stat-item {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  background: rgba(30, 41, 59, 0.9);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.board-area .board-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  padding: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+
+.board-area .empty-board-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+  text-align: center;
+  color: #64748b;
+}
+
+.board-area .empty-icon {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+.board-area .empty-board-message p {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+/* ===========================================
+   ZONA 3: MANO DEL JUGADOR
+   =========================================== */
+
+.player-hand-area {
+  flex: 0 0 auto;
+  min-height: 140px;
+  max-height: 160px;
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 12px;
+  padding: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.player-hand-area .hand-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+.player-hand-area .hand-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-hand-area .hand-count {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.player-hand-area .hand-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 10px;
+  min-height: 100px;
+  padding: 4px;
+}
+
+/* ===========================================
+   ZONA 4: PANEL DE CONTROL
+   =========================================== */
+
+.control-panel {
+  flex: 0 0 auto;
+  min-height: 160px;
+  background: rgba(15, 23, 42, 0.9);
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  backdrop-filter: blur(10px);
+}
+
+/* Botones de control */
+.control-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.control-btn {
+  flex: 1;
+  min-width: 120px;
+  max-width: 200px;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.control-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.control-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.control-btn:not(:disabled):active {
+  transform: translateY(0);
+}
+
+.btn-draw {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+}
+
+.btn-pass {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.btn-hint {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.btn-restart {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+}
+
+.btn-icon {
+  font-size: 1.2rem;
+}
+
+.btn-text {
+  font-weight: 600;
+}
+
+/* Área de mensajes */
+.game-messages {
+  background: rgba(30, 41, 59, 0.8);
+  border-radius: 10px;
+  padding: 16px;
+  border-left: 4px solid #3b82f6;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Estadísticas del juego */
+.game-stats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 10px;
+  padding: 16px;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-around;
+  gap: 12px;
+}
+
+.stat-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(30, 41, 59, 0.8);
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  transition: all 0.2s ease;
+}
+
+.stat-item:hover {
+  background: rgba(30, 41, 59, 0.9);
+  transform: translateY(-2px);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.player-score .stat-value {
+  color: #10b981;
+}
+
+.opponent-score .stat-value {
+  color: #ef4444;
+}
+
+/* ===========================================
+   ESTILOS PARA FICHAS EN EL LAYOUT
+   =========================================== */
+
+/* Contenedor de fichas en manos */
+.hand-content .tile-wrapper {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 4px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.hand-content .tile-wrapper:hover {
+  transform: translateY(-8px);
+  z-index: 10;
+}
+
+/* Contenedor de fichas en la mesa */
+.board-content .tile-wrapper {
+  display: inline-flex;
+  margin: 0 4px;
+  transition: all 0.2s ease;
+}
+
+.board-content .tile-wrapper:hover {
+  transform: scale(1.05);
+}
+
+/* Fichas del oponente (ocultas) */
+.ai-hand-area .domino-tile {
+  filter: grayscale(0.7) brightness(0.8);
+  opacity: 0.9;
+}
+
+/* Fichas jugables */
+.tile-wrapper.playable {
+  position: relative;
+}
+
+.tile-wrapper.playable::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  background: linear-gradient(45deg, transparent, rgba(16, 185, 129, 0.2), transparent);
+  border-radius: 14px;
+  z-index: -1;
+  animation: playableGlow 2s infinite;
+}
+
+@keyframes playableGlow {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ===========================================
+   RESPONSIVE DESIGN
+   =========================================== */
+
+/* Tablets y móviles grandes (900px o menos) */
+@media (max-width: 900px) {
+  .game-container {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .ai-hand-area {
+    min-height: 110px;
+    max-height: 120px;
+    padding: 10px;
+  }
+
+  .board-area {
+    padding: 12px;
+    min-height: 180px;
+  }
+
+  .player-hand-area {
+    min-height: 130px;
+    max-height: 140px;
+    padding: 12px;
+  }
+
+  .control-panel {
+    padding: 12px;
+    min-height: 140px;
+  }
+
+  .control-btn {
+    min-width: 100px;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+
+  .game-messages {
+    padding: 12px;
+    min-height: 50px;
+    font-size: 0.95rem;
+  }
+
+  .game-stats {
+    padding: 12px;
+  }
+
+  .stat-value {
+    font-size: 1.3rem;
+  }
+}
+
+/* Móviles pequeños (600px o menos) */
+@media (max-width: 600px) {
+  .game-container {
+    padding: 6px;
+    gap: 6px;
+  }
+
+  .ai-hand-area {
+    min-height: 100px;
+    max-height: 110px;
+    padding: 8px;
+  }
+
+  .ai-hand-area .hand-content,
+  .player-hand-area .hand-content {
+    min-height: 70px;
+    gap: 6px;
+  }
+
+  .board-area {
+    padding: 10px;
+    min-height: 160px;
+  }
+
+  .board-area .board-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .board-area .board-stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .player-hand-area {
+    min-height: 120px;
+    max-height: 130px;
+    padding: 10px;
+  }
+
+  .control-panel {
+    padding: 10px;
+    min-height: 120px;
+    gap: 12px;
+  }
+
+  .control-buttons {
+    gap: 8px;
+  }
+
+  .control-btn {
+    min-width: 80px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .btn-text {
+    display: none; /* Ocultar texto en móviles pequeños */
+  }
+
+  .game-messages {
+    padding: 10px;
+    min-height: 40px;
+    font-size: 0.9rem;
+  }
+
+  .game-stats {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .stat-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stat-item {
+    padding: 8px;
+  }
+
+  .stat-value {
+    font-size: 1.1rem;
+  }
+}
+
+/* Móviles muy pequeños (400px o menos) */
+@media (max-width: 400px) {
+  .ai-hand-area,
+  .player-hand-area {
+    min-height: 90px;
+  }
+
+  .board-area {
+    min-height: 140px;
+  }
+
+  .control-btn {
+    min-width: 60px;
+    padding: 8px 10px;
+  }
+
+  .btn-icon {
+    font-size: 1rem;
+  }
+}
+
+/* Pantallas grandes (1200px o más) */
+@media (min-width: 1200px) {
+  .game-container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .control-panel {
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .control-buttons {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .game-messages {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .game-stats {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}
+
+/* ===========================================
+   COMPATIBILIDAD CON ESCALADO AUTOMÁTICO
+   =========================================== */
+
+/* Clases para diferentes tamaños de fichas */
+.tile-small .domino-tile {
+  transform: scale(0.9);
+}
+
+.tile-very-small .domino-tile {
+  transform: scale(0.8);
+}
+
+.tile-normal .domino-tile {
+  transform: scale(1);
+}
+
+/* Scrollbars personalizados */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+}
+
+/* Ocultar scrollbar en algunos elementos */
+.ai-hand-area::-webkit-scrollbar,
+.player-hand-area::-webkit-scrollbar {
+  height: 4px;
+}
+
+/* ===========================================
+   UTILIDADES
+   =========================================== */
+
+.hidden {
+  display: none !important;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Estados del juego */
+.game-ended .control-btn:not(.btn-restart) {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.game-waiting .control-btn {
+  opacity: 0.7;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Fin del archivo layout.css */
