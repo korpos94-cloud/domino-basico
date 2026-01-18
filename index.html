@@ -161,15 +161,11 @@
         initGame,
         playerPlay,
         playerDrawTile,
-        playerPassTurn,
         aiPlay,
         getGameState,
         restartGame,
         resetGame,
-        getCurrentPlayerPlayableTiles,
-        getPendingPlay,
-        confirmPendingPlay,
-        cancelPendingPlay
+        getCurrentPlayerPlayableTiles
       } from './src/js/game.js'
       import { initUI, updateUI, showMessage, highlightPlayableTiles } from './src/js/ui.js'
 
@@ -432,7 +428,6 @@
       }
 
       // Manejar pasar turno
-      // CORREGIDO: Usa nueva función playerPassTurn()
       function handlePassTurn() {
         const gameState = getGameState()
         if (!gameState || gameState.currentPlayer !== 'player') {
@@ -440,26 +435,34 @@
           return
         }
 
-        const success = playerPassTurn()
-        
-        if (success) {
-          showMessage('Pasaste turno', 'info')
-          updateUI()
+        const playableTiles = getCurrentPlayerPlayableTiles()
 
-          setTimeout(() => {
-            if (getGameState()?.currentPlayer === 'opponent') {
-              aiPlay()
-              updateUI()
-            }
-          }, 1000)
-        } else {
-          const playableTiles = getCurrentPlayerPlayableTiles()
-          if (playableTiles.length > 0) {
-            showMessage('Tienes fichas jugables', 'warning')
-          } else if (gameState.stock.length > 0) {
-            showMessage('Debes robar del pozo primero', 'warning')
-          }
+        // Solo se puede pasar si no hay fichas jugables Y no hay fichas en el pozo
+        if (playableTiles.length > 0) {
+          showMessage('Tienes fichas jugables, no puedes pasar turno', 'warning')
+          return
         }
+
+        if (gameState.stock.length > 0) {
+          showMessage('Debes robar del pozo primero', 'warning')
+          return
+        }
+
+        // Pasar turno es válido
+        showMessage('Pasaste turno', 'info')
+
+        // Cambiar turno manualmente (modificar el estado)
+        gameState.currentPlayer = 'opponent'
+        gameState.lastAction = 'player_passed'
+
+        updateUI()
+
+        setTimeout(() => {
+          if (getGameState()?.currentPlayer === 'opponent') {
+            aiPlay()
+            updateUI()
+          }
+        }, 1000)
       }
 
       // Mostrar pista
