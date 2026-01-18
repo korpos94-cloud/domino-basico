@@ -94,7 +94,8 @@ function updateBoard() {
 
   if (!board || board.tiles.length === 0) {
     domRefs.board.innerHTML = `
-            <div class="empty-board">
+            <div class="empty-board-message">
+                <div class="empty-icon">🀰</div>
                 <p>Mesa vacía</p>
                 <p class="hint">Coloca la primera ficha para comenzar</p>
             </div>
@@ -102,32 +103,38 @@ function updateBoard() {
     return;
   }
 
-  // Crear contenedor para la mesa
-  let boardHTML = '<div class="board-tiles">';
+  // Crear estructura de la mesa esperada por CSS
+  let boardHTML = '<div class="board-wrapper">';
 
   // Mostrar extremo izquierdo
   if (board.leftValue !== null) {
     boardHTML += `
-            <div class="board-end left-end">
-                <div class="end-value">${board.leftValue}</div>
+            <div class="board-end-panel left-panel">
                 <div class="end-label">Izquierda</div>
+                <div class="end-value">${board.leftValue}</div>
             </div>
         `;
   }
 
-  // CORRECCIÓN CRÍTICA: Todas las fichas en mesa son horizontales
+  // Área de scroll para las fichas
+  boardHTML += '<div class="board-tiles-scroll board-track">';
+
+  // Renderizar fichas en la mesa
   board.tiles.forEach((tile, index) => {
     const isFirst = index === 0;
     const isLast = index === board.tiles.length - 1;
+    const isNew =
+      gameState.lastAction?.includes("played") && (isFirst || isLast);
 
     boardHTML += `
-            <div class="board-tile ${isFirst ? "first" : ""} ${
+            <div class="tile-wrapper board-tile ${isFirst ? "first" : ""} ${
       isLast ? "last" : ""
-    }" data-id="${tile.id}">
+    } ${isNew ? "new-tile" : ""}" data-id="${tile.id}">
                 ${renderTile(tile, {
                   ...uiConfig.tileSizes.board,
                   orientation: "horizontal",
                 })}
+                <div class="tile-info">${tile.a}-${tile.b}</div>
                 ${
                   uiConfig.animations.enabled
                     ? '<div class="tile-glow"></div>'
@@ -137,27 +144,28 @@ function updateBoard() {
         `;
   });
 
+  boardHTML += "</div>"; // Cerrar board-tiles-scroll
+
   // Mostrar extremo derecho
   if (board.rightValue !== null) {
     boardHTML += `
-            <div class="board-end right-end">
-                <div class="end-value">${board.rightValue}</div>
+            <div class="board-end-panel right-panel">
                 <div class="end-label">Derecha</div>
+                <div class="end-value">${board.rightValue}</div>
             </div>
         `;
   }
 
-  boardHTML += "</div>";
+  boardHTML += "</div>"; // Cerrar board-wrapper
   domRefs.board.innerHTML = boardHTML;
 
-  // Añadir animaciones a las fichas recién colocadas (solo una vez)
-  if (gameState.lastAction?.includes("played")) {
-    const lastPlayedTile = domRefs.board.querySelector(
-      ".board-tile:last-child, .board-tile:first-child"
-    );
-    if (lastPlayedTile && uiConfig.animations.enabled) {
-      lastPlayedTile.classList.add("new-tile");
-      setTimeout(() => lastPlayedTile.classList.remove("new-tile"), 1000);
+  // Manejar scroll automático al final si se añadió una ficha a la derecha
+  if (gameState.lastAction === "player_played_right" || gameState.lastAction === "opponent_played_right") {
+    const scrollArea = domRefs.board.querySelector(".board-tiles-scroll");
+    if (scrollArea) {
+      setTimeout(() => {
+        scrollArea.scrollLeft = scrollArea.scrollWidth;
+      }, 100);
     }
   }
 }
@@ -190,7 +198,7 @@ function updatePlayerHand() {
     const isPlayable = !!playableInfo;
 
     handHTML += `
-            <div class="player-tile ${isPlayable ? "playable" : ""}" 
+            <div class="tile-wrapper player-tile ${isPlayable ? "tile-playable" : ""}" 
                  data-id="${tile.id}"
                  data-playable="${isPlayable}"
                  onclick="window.handleTileClick('${tile.id}')">
@@ -199,6 +207,7 @@ function updatePlayerHand() {
                   color: uiConfig.colors.playerTile,
                   orientation: "vertical",
                 })}
+                <div class="tile-info">${tile.a}-${tile.b}</div>
                 ${isPlayable ? '<div class="playable-indicator"></div>' : ""}
             </div>
         `;
@@ -222,7 +231,7 @@ function updateOpponentHand() {
   // Mostrar fichas boca abajo
   hand.forEach((tile) => {
     handHTML += `
-            <div class="opponent-tile" data-id="${tile.id}">
+            <div class="tile-wrapper opponent-tile" data-id="${tile.id}">
                 ${renderTile(
                   {
                     a: 0,
@@ -245,18 +254,8 @@ function updateOpponentHand() {
 
   handHTML += "</div>";
 
-  // Añadir contador de fichas
-  handHTML += `
-        <div class="opponent-info">
-            <div class="opponent-count">Fichas: ${hand.length}</div>
-            ${
-              gameState?.currentPlayer === "opponent"
-                ? '<div class="opponent-thinking">Pensando...</div>'
-                : ""
-            }
-        </div>
-    `;
-
+  // El contador de fichas ya se maneja en el header del layout.css
+  // pero podemos mantener una actualización si es necesario
   domRefs.opponentHand.innerHTML = handHTML;
 }
 
@@ -373,67 +372,55 @@ function updateStats() {
   const stats = getGameStats();
   if (!stats) return;
 
-  const statsHTML = `
-        <div class="game-stats">
+  domRefs.stats.innerHTML = `
+        <div class="stat-row">
             <div class="stat-item">
-                <div class="stat-label">Fase</div>
-                <div class="stat-value">${
-                  stats.phase === "playing" ? "Jugando" : "Terminado"
-                }</div>
+                <span class="stat-label">Fichas Jugador</span>
+                <span class="stat-value">${stats.playerTilesCount}</span>
             </div>
             <div class="stat-item">
-                <div class="stat-label">Turno</div>
-                <div class="stat-value">${
-                  stats.currentPlayer === "player" ? "Jugador" : "Oponente"
-                }</div>
+                <span class="stat-label">Fichas Oponente</span>
+                <span class="stat-value">${stats.opponentTilesCount}</span>
+            </div>
+        </div>
+        <div class="stat-row">
+            <div class="stat-item">
+                <span class="stat-label">Fichas en Pozo</span>
+                <span class="stat-value">${stats.stockCount}</span>
             </div>
             <div class="stat-item">
-                <div class="stat-label">Mesa</div>
-                <div class="stat-value">${stats.boardTiles} fichas</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Pozo</div>
-                <div class="stat-value">${stats.stockTiles} fichas</div>
+                <span class="stat-label">Fichas en Mesa</span>
+                <span class="stat-value">${stats.boardCount}</span>
             </div>
         </div>
     `;
-
-  domRefs.stats.innerHTML = statsHTML;
 }
 
 /**
- * Actualiza el indicador de jugador actual
+ * Actualiza el indicador de turno actual
  */
 function updateCurrentPlayerIndicator() {
   if (!domRefs.currentPlayer) return;
 
   const gameState = getGameState();
-  if (!gameState) return;
+  const isPlayerTurn = gameState.currentPlayer === "player";
 
-  const playerText =
-    gameState.currentPlayer === "player" ? "Tu turno" : "Turno del oponente";
-  const playerClass =
-    gameState.currentPlayer === "player" ? "player-turn" : "opponent-turn";
-
-  domRefs.currentPlayer.innerHTML = `
-        <div class="current-player-indicator ${playerClass}">
-            <span class="indicator-dot"></span>
-            <span class="indicator-text">${playerText}</span>
-        </div>
-    `;
+  domRefs.currentPlayer.textContent = isPlayerTurn ? "Tu turno" : "Turno IA";
+  domRefs.currentPlayer.className = `current-player-badge ${
+    isPlayerTurn ? "player" : "opponent"
+  }`;
 }
 
 /**
  * Actualiza las puntuaciones
  */
 function updateScores() {
-  if (!domRefs.playerScore || !domRefs.opponentScore) return;
+  const stats = getGameStats();
+  if (!stats) return;
 
-  const gameState = getGameState();
-  if (!gameState) return;
-
-  domRefs.playerScore.textContent = gameState.playerScore;
-  domRefs.opponentScore.textContent = gameState.opponentScore;
+  if (domRefs.playerScore) domRefs.playerScore.textContent = stats.playerScore;
+  if (domRefs.opponentScore)
+    domRefs.opponentScore.textContent = stats.opponentScore;
 }
 
 /**
@@ -441,231 +428,62 @@ function updateScores() {
  */
 export function highlightPlayableTiles() {
   const playableTiles = getCurrentPlayerPlayableTiles();
-  const playableIds = playableTiles.map((p) => p.tile.id);
+  const handTiles = domRefs.playerHand?.querySelectorAll(".tile-wrapper");
 
-  setTimeout(() => {
-    document.querySelectorAll(".player-tile").forEach((tileEl) => {
-      const tileId = tileEl.dataset.id;
-      if (playableIds.includes(tileId)) {
-        tileEl.classList.add("highlighted");
-        tileEl.style.boxShadow = `0 0 15px ${uiConfig.colors.playableHighlight}`;
-      } else {
-        tileEl.classList.remove("highlighted");
-        tileEl.style.boxShadow = "";
+  if (!handTiles) return;
+
+  handTiles.forEach((tileElement) => {
+    const tileId = tileElement.getAttribute("data-id");
+    const isPlayable = playableTiles.some((p) => p.tile.id === tileId);
+
+    if (isPlayable) {
+      tileElement.classList.add("tile-playable");
+      // Asegurarse de que el indicador exista
+      if (!tileElement.querySelector(".playable-indicator")) {
+        const indicator = document.createElement("div");
+        indicator.className = "playable-indicator";
+        tileElement.appendChild(indicator);
       }
-    });
-  }, 50);
+    } else {
+      tileElement.classList.remove("tile-playable");
+      const indicator = tileElement.querySelector(".playable-indicator");
+      if (indicator) indicator.remove();
+    }
+  });
 }
 
 /**
- * Muestra un mensaje temporal
- * @param {string} text - Texto del mensaje
- * @param {string} type - Tipo: 'info', 'success', 'warning', 'error'
- * @param {number} duration - Duración en milisegundos
+ * Muestra una animación de error en una ficha
+ * @param {string} tileId - ID de la ficha
  */
-export function showMessage(text, type = "info", duration = 3000) {
-  const messageEl = document.createElement("div");
-  messageEl.className = `toast-message ${type}`;
-  messageEl.textContent = text;
-  messageEl.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 12px 20px;
-        background: ${getToastColor(type)};
-        color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 1000;
-        animation: slideIn 0.3s ease;
-    `;
+export function animateTileError(tileId) {
+  const tileElement = domRefs.playerHand?.querySelector(
+    `[data-id="${tileId}"]`
+  );
+  if (tileElement) {
+    tileElement.classList.add("tile-error");
+    setTimeout(() => tileElement.classList.remove("tile-error"), 500);
+  }
+}
 
-  document.body.appendChild(messageEl);
+/**
+ * Muestra una notificación temporal
+ * @param {string} text - Texto de la notificación
+ * @param {string} type - Tipo (info, success, error, warning)
+ */
+export function showNotification(text, type = "info") {
+  const notification = document.createElement("div");
+  notification.className = `ui-notification ${type}`;
+  notification.textContent = text;
 
+  document.body.appendChild(notification);
+
+  // Animación de entrada
+  setTimeout(() => notification.classList.add("show"), 10);
+
+  // Eliminar después de 3 segundos
   setTimeout(() => {
-    messageEl.style.animation = "slideOut 0.3s ease";
-    setTimeout(() => document.body.removeChild(messageEl), 300);
-  }, duration);
-}
-
-/**
- * Obtiene color para toast message
- */
-function getToastColor(type) {
-  const colors = {
-    info: "#2196F3",
-    success: "#4CAF50",
-    warning: "#FF9800",
-    error: "#F44336",
-  };
-  return colors[type] || colors.info;
-}
-
-/**
- * Muestra un diálogo modal
- * @param {string} title - Título del diálogo
- * @param {string} content - Contenido HTML
- * @param {Array} buttons - Botones: [{text, action, type}]
- */
-export function showDialog(title, content, buttons = []) {
-  const modalHTML = `
-        <div class="modal-overlay">
-            <div class="modal-dialog">
-                <div class="modal-header">
-                    <h3>${title}</h3>
-                    <button class="modal-close" onclick="closeModal()">×</button>
-                </div>
-                <div class="modal-content">${content}</div>
-                <div class="modal-footer">
-                    ${buttons
-                      .map(
-                        (btn) => `
-                        <button class="modal-btn ${btn.type || "primary"}" 
-                                onclick="${btn.action}">
-                            ${btn.text}
-                        </button>
-                    `
-                      )
-                      .join("")}
-                </div>
-            </div>
-        </div>
-    `;
-
-  const modalContainer = document.createElement("div");
-  modalContainer.id = "modal-container";
-  modalContainer.innerHTML = modalHTML;
-  document.body.appendChild(modalContainer);
-
-  if (!document.querySelector("#modal-styles")) {
-    const styles = document.createElement("style");
-    styles.id = "modal-styles";
-    styles.textContent = `
-            .modal-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0,0,0,0.5);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 2000;
-                animation: fadeIn 0.3s ease;
-            }
-            .modal-dialog {
-                background: white;
-                border-radius: 12px;
-                padding: 24px;
-                max-width: 500px;
-                width: 90%;
-                box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-                animation: scaleIn 0.3s ease;
-            }
-            .modal-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 20px;
-            }
-            .modal-close {
-                background: none;
-                border: none;
-                font-size: 24px;
-                cursor: pointer;
-                color: #666;
-            }
-            .modal-footer {
-                display: flex;
-                gap: 10px;
-                justify-content: flex-end;
-                margin-top: 20px;
-            }
-            .modal-btn {
-                padding: 10px 20px;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-            }
-            .modal-btn.primary {
-                background: #2196F3;
-                color: white;
-            }
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-            @keyframes scaleIn {
-                from { transform: scale(0.9); opacity: 0; }
-                to { transform: scale(1); opacity: 1; }
-            }
-        `;
-    document.head.appendChild(styles);
-  }
-
-  window.closeModal = () => {
-    document.body.removeChild(modalContainer);
-  };
-}
-
-/**
- * Actualiza el estado de carga/espera
- * @param {boolean} isLoading - Si está cargando
- * @param {string} message - Mensaje de carga
- */
-export function setLoading(isLoading, message = "Cargando...") {
-  const loader = document.getElementById("loader") || createLoader();
-
-  if (isLoading) {
-    loader.style.display = "flex";
-    loader.querySelector(".loader-message").textContent = message;
-  } else {
-    loader.style.display = "none";
-  }
-}
-
-/**
- * Crea el elemento loader si no existe
- */
-function createLoader() {
-  const loader = document.createElement("div");
-  loader.id = "loader";
-  loader.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(255,255,255,0.9);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        z-index: 3000;
-    `;
-  loader.innerHTML = `
-        <div class="spinner"></div>
-        <div class="loader-message" style="margin-top: 20px; color: #333;"></div>
-    `;
-
-  const spinnerStyles = document.createElement("style");
-  spinnerStyles.textContent = `
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #2196F3;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    `;
-  document.head.appendChild(spinnerStyles);
-
-  document.body.appendChild(loader);
-  return loader;
+    notification.classList.remove("show");
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
 }
