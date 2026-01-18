@@ -1,0 +1,47 @@
+{
+  "name": "Dominó - Juego Premium",
+  "short_name": "Dominó",
+  "description": "Juego de dominó profesional contra IA con 3 niveles de dificultad",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1a2980",
+  "theme_color": "#00b894",
+  "orientation": "any",
+  "scope": "./",
+  "lang": "es",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%2300b894' width='512' height='512' rx='80'/%3E%3Crect x='128' y='128' width='256' height='256' fill='white' rx='20'/%3E%3Cline x1='256' y1='128' x2='256' y2='384' stroke='%23ddd' stroke-width='4'/%3E%3Ccircle cx='192' cy='192' r='20' fill='%2300b894'/%3E%3Ccircle cx='192' cy='320' r='20' fill='%2300b894'/%3E%3Ccircle cx='320' cy='192' r='20' fill='%2300b894'/%3E%3Ccircle cx='320' cy='256' r='20' fill='%2300b894'/%3E%3Ccircle cx='320' cy='320' r='20' fill='%2300b894'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%2300b894' width='192' height='192' rx='30'/%3E%3Crect x='48' y='48' width='96' height='96' fill='white' rx='8'/%3E%3Cline x1='96' y1='48' x2='96' y2='144' stroke='%23ddd' stroke-width='2'/%3E%3Ccircle cx='72' cy='72' r='8' fill='%2300b894'/%3E%3Ccircle cx='72' cy='120' r='8' fill='%2300b894'/%3E%3Ccircle cx='120' cy='72' r='8' fill='%2300b894'/%3E%3Ccircle cx='120' cy='96' r='8' fill='%2300b894'/%3E%3Ccircle cx='120' cy='120' r='8' fill='%2300b894'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Nueva Partida Rápida",
+      "short_name": "Nueva Partida",
+      "description": "Inicia una nueva partida en nivel medio",
+      "url": "./index.html?action=new&difficulty=medium",
+      "icons": []
+    },
+    {
+      "name": "Nivel Difícil",
+      "short_name": "Difícil",
+      "description": "Inicia partida contra IA experta",
+      "url": "./index.html?action=new&difficulty=hard",
+      "icons": []
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}
