@@ -415,6 +415,50 @@ export function playerDrawTile() {
 }
 
 /**
+ * Permite al jugador pasar su turno
+ * Solo puede pasar si no tiene fichas jugables y el pozo está vacío
+ * @returns {boolean} True si pudo pasar el turno exitosamente
+ */
+export function playerPassTurn() {
+  if (
+    !gameState ||
+    gameState.phase !== "playing" ||
+    gameState.currentPlayer !== "player"
+  ) {
+    console.warn("No es el turno del jugador o el juego no está activo");
+    return false;
+  }
+
+  // Verificar si tiene fichas jugables
+  const playableTiles = getPlayableTiles(
+    gameState.board,
+    gameState.playerHand
+  );
+
+  if (playableTiles.length > 0) {
+    console.warn("No puedes pasar turno, tienes fichas jugables");
+    return false;
+  }
+
+  // Si hay fichas en el pozo, debe robar primero
+  if (gameState.stock.length > 0) {
+    console.warn("No puedes pasar turno, debes robar del pozo primero");
+    return false;
+  }
+
+  // Pasar turno
+  gameState.lastAction = "player_passed";
+  gameState.currentPlayer = "opponent";
+
+  console.log("🎯 Jugador pasó turno");
+
+  // Verificar si el juego está bloqueado
+  checkGameBlocked();
+
+  return true;
+}
+
+/**
  * Roba una ficha del pozo para el oponente (uso interno)
  * @returns {Object|null} Ficha robada
  */
