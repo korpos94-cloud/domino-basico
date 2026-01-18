@@ -253,9 +253,6 @@ function updateOpponentHand() {
   });
 
   handHTML += "</div>";
-
-  // El contador de fichas ya se maneja en el header del layout.css
-  // pero podemos mantener una actualización si es necesario
   domRefs.opponentHand.innerHTML = handHTML;
 }
 
@@ -372,28 +369,19 @@ function updateStats() {
   const stats = getGameStats();
   if (!stats) return;
 
-  domRefs.stats.innerHTML = `
-        <div class="stat-row">
-            <div class="stat-item">
-                <span class="stat-label">Fichas Jugador</span>
-                <span class="stat-value">${stats.playerTilesCount}</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Fichas Oponente</span>
-                <span class="stat-value">${stats.opponentTilesCount}</span>
-            </div>
-        </div>
-        <div class="stat-row">
-            <div class="stat-item">
-                <span class="stat-label">Fichas en Pozo</span>
-                <span class="stat-value">${stats.stockCount}</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Fichas en Mesa</span>
-                <span class="stat-value">${stats.boardCount}</span>
-            </div>
-        </div>
-    `;
+  // En index.html, domRefs.stats apunta a un contenedor que ya tiene estructura.
+  // Solo actualizamos los valores si los elementos existen.
+  const roundEl = document.getElementById('roundNumber');
+  const stockEl = document.getElementById('stockCount');
+  const playerTilesEl = document.getElementById('playerCount');
+  const opponentTilesEl = document.getElementById('opponentCount');
+  const boardTilesEl = document.getElementById('boardCount');
+
+  if (roundEl) roundEl.textContent = stats.round || 1;
+  if (stockEl) stockEl.textContent = stats.stockCount;
+  if (playerTilesEl) playerTilesEl.textContent = `${stats.playerTilesCount} fichas`;
+  if (opponentTilesEl) opponentTilesEl.textContent = `${stats.opponentTilesCount} fichas`;
+  if (boardTilesEl) boardTilesEl.textContent = `${stats.boardCount} fichas`;
 }
 
 /**
@@ -405,10 +393,8 @@ function updateCurrentPlayerIndicator() {
   const gameState = getGameState();
   const isPlayerTurn = gameState.currentPlayer === "player";
 
-  domRefs.currentPlayer.textContent = isPlayerTurn ? "Tu turno" : "Turno IA";
-  domRefs.currentPlayer.className = `current-player-badge ${
-    isPlayerTurn ? "player" : "opponent"
-  }`;
+  domRefs.currentPlayer.textContent = isPlayerTurn ? "Turno: Jugador" : "Turno: IA";
+  // No cambiamos la clase si no estamos seguros de que CSS la soporte para este elemento específico
 }
 
 /**
@@ -486,4 +472,17 @@ export function showNotification(text, type = "info") {
     notification.classList.remove("show");
     setTimeout(() => notification.remove(), 300);
   }, 3000);
+}
+
+/**
+ * Muestra un mensaje en el área de mensajes (alias para compatibilidad)
+ */
+export function showMessage(text, type = "info") {
+    if (!domRefs.message) return;
+    
+    domRefs.message.innerHTML = `
+        <div class="message ${type}">
+            ${text}
+        </div>
+    `;
 }
