@@ -9,7 +9,6 @@ import {
   getGameState,
   getCurrentPlayerPlayableTiles,
   getGameStats,
-  getPendingPlay,
 } from "./game.js";
 import { getPlayableTiles } from "./board.js";
 
@@ -85,8 +84,7 @@ export function updateUI() {
 }
 
 /**
- * Renderiza la mesa de juego con extremos fijos
- * CORREGIDO: Muestra extremos de mesa de forma fija y visible
+ * Renderiza la mesa de juego
  */
 function updateBoard() {
   if (!domRefs.board) return;
@@ -96,33 +94,31 @@ function updateBoard() {
 
   if (!board || board.tiles.length === 0) {
     domRefs.board.innerHTML = `
-            <div class="empty-board-message">
-                <div class="empty-icon">🎴</div>
-                <p>Coloca la primera ficha para comenzar</p>
+            <div class="empty-board">
+                <p>Mesa vacía</p>
+                <p class="hint">Coloca la primera ficha para comenzar</p>
             </div>
         `;
     return;
   }
 
-  // Crear contenedor para la mesa con extremos fijos
-  let boardHTML = '<div class="board-wrapper">';
+  // Crear contenedor para la mesa
+  let boardHTML = '<div class="board-tiles">';
 
-  // Panel de extremo izquierdo (fijo)
-  boardHTML += `
-        <div class="board-end-panel left-panel">
-            <div class="end-label">Izquierda</div>
-            <div class="end-value">${board.leftValue !== null ? board.leftValue : "-"}</div>
-        </div>
-    `;
+  // Mostrar extremo izquierdo
+  if (board.leftValue !== null) {
+    boardHTML += `
+            <div class="board-end left-end">
+                <div class="end-value">${board.leftValue}</div>
+                <div class="end-label">Izquierda</div>
+            </div>
+        `;
+  }
 
-  // Contenedor scrollable de fichas
-  boardHTML += '<div class="board-tiles-scroll">';
-
-  // Mostrar fichas en la mesa
+  // CORRECCIÓN CRÍTICA: Todas las fichas en mesa son horizontales
   board.tiles.forEach((tile, index) => {
     const isFirst = index === 0;
     const isLast = index === board.tiles.length - 1;
-    const orientation = determineTileOrientation(index, board.tiles.length);
 
     boardHTML += `
             <div class="board-tile ${isFirst ? "first" : ""} ${
@@ -130,26 +126,31 @@ function updateBoard() {
     }" data-id="${tile.id}">
                 ${renderTile(tile, {
                   ...uiConfig.tileSizes.board,
-                  orientation: orientation,
+                  orientation: "horizontal",
                 })}
+                ${
+                  uiConfig.animations.enabled
+                    ? '<div class="tile-glow"></div>'
+                    : ""
+                }
             </div>
         `;
   });
 
-  boardHTML += "</div>"; // Cerrar board-tiles-scroll
+  // Mostrar extremo derecho
+  if (board.rightValue !== null) {
+    boardHTML += `
+            <div class="board-end right-end">
+                <div class="end-value">${board.rightValue}</div>
+                <div class="end-label">Derecha</div>
+            </div>
+        `;
+  }
 
-  // Panel de extremo derecho (fijo)
-  boardHTML += `
-        <div class="board-end-panel right-panel">
-            <div class="end-label">Derecha</div>
-            <div class="end-value">${board.rightValue !== null ? board.rightValue : "-"}</div>
-        </div>
-    `;
-
-  boardHTML += "</div>"; // Cerrar board-wrapper
+  boardHTML += "</div>";
   domRefs.board.innerHTML = boardHTML;
 
-  // Añadir animaciones a las fichas recién colocadas
+  // Añadir animaciones a las fichas recién colocadas (solo una vez)
   if (gameState.lastAction?.includes("played")) {
     const lastPlayedTile = domRefs.board.querySelector(
       ".board-tile:last-child, .board-tile:first-child"
@@ -159,15 +160,6 @@ function updateBoard() {
       setTimeout(() => lastPlayedTile.classList.remove("new-tile"), 1000);
     }
   }
-}
-
-/**
- * Determina la orientación de una ficha en la mesa
- */
-function determineTileOrientation(index, totalTiles) {
-  // Lógica básica: alternar orientación para mejor visualización
-  if (totalTiles <= 3) return "horizontal";
-  return index % 2 === 0 ? "horizontal" : "vertical";
 }
 
 /**
@@ -205,6 +197,7 @@ function updatePlayerHand() {
                 ${renderTile(tile, {
                   ...uiConfig.tileSizes.player,
                   color: uiConfig.colors.playerTile,
+                  orientation: "vertical",
                 })}
                 ${isPlayable ? '<div class="playable-indicator"></div>' : ""}
             </div>
@@ -217,7 +210,6 @@ function updatePlayerHand() {
 
 /**
  * Renderiza la mano del oponente (oculta)
- * CORREGIDO: Fichas diferenciadas por índice
  */
 function updateOpponentHand() {
   if (!domRefs.opponentHand) return;
@@ -227,15 +219,15 @@ function updateOpponentHand() {
 
   let handHTML = '<div class="opponent-hand-tiles">';
 
-  // Mostrar fichas boca abajo diferenciadas
-  hand.forEach((tile, index) => {
+  // Mostrar fichas boca abajo
+  hand.forEach((tile) => {
     handHTML += `
-            <div class="opponent-tile" data-id="${tile.id}" data-index="${index}">
+            <div class="opponent-tile" data-id="${tile.id}">
                 ${renderTile(
                   {
                     a: 0,
                     b: 0,
-                    id: `hidden-${index}`,
+                    id: "hidden",
                     isDouble: false,
                     orientation: "vertical",
                   },
@@ -243,6 +235,7 @@ function updateOpponentHand() {
                     ...uiConfig.tileSizes.opponent,
                     color: uiConfig.colors.opponentTile,
                     dotColor: uiConfig.colors.opponentTile,
+                    orientation: "vertical",
                   }
                 )}
                 <div class="tile-back"></div>
@@ -302,6 +295,7 @@ function updateStock() {
                         color: "#cccccc",
                         dotColor: "#cccccc",
                         borderRadius: 4,
+                        orientation: "vertical",
                       }
                     )}
                 </div>
@@ -321,7 +315,6 @@ function updateStock() {
 
 /**
  * Actualiza el mensaje de estado
- * CORREGIDO: Mensajes más informativos y contextuales
  */
 function updateMessage() {
   if (!domRefs.message) return;
@@ -339,41 +332,23 @@ function updateMessage() {
     case "playing":
       if (gameState.currentPlayer === "player") {
         const playable = getCurrentPlayerPlayableTiles();
-        const pendingPlay = getPendingPlay();
-        
-        if (pendingPlay) {
-          message = "Elige un lado: Izquierda o Derecha";
-          messageType = "warning";
-        } else if (playable.length > 0) {
-          message = `Tu turno - ${playable.length} ficha${playable.length > 1 ? 's' : ''} jugable${playable.length > 1 ? 's' : ''}`;
-        } else if (gameState.stock.length > 0) {
-          message = "Tu turno - Sin fichas jugables. Debes robar del pozo";
-          messageType = "warning";
+        if (playable.length > 0) {
+          message = "Tu turno - Selecciona una ficha para jugar";
         } else {
-          message = "Tu turno - Sin fichas jugables. Debes pasar turno";
+          message =
+            "Tu turno - No tienes fichas jugables. Roba del pozo o pasa turno";
           messageType = "warning";
         }
       } else {
-        // Mostrar última acción del oponente
-        if (gameState.lastAction.includes("opponent_played")) {
-          message = "Oponente jugó una ficha";
-        } else if (gameState.lastAction === "opponent_drew_tile") {
-          message = "Oponente robó una ficha";
-        } else if (gameState.lastAction === "opponent_drew_and_passed") {
-          message = "Oponente robó y pasó turno";
-        } else if (gameState.lastAction === "opponent_passed") {
-          message = "Oponente pasó turno";
-        } else {
-          message = "Turno del oponente...";
-        }
+        message = "Turno del oponente...";
       }
       break;
     case "finished":
       if (gameState.winner === "player") {
-        message = `🎉 ¡Has ganado! +${gameState.playerScore} puntos`;
+        message = "🎉 ¡Has ganado! 🎉";
         messageType = "success";
       } else if (gameState.winner === "opponent") {
-        message = `😔 El oponente ganó. +${gameState.opponentScore} puntos`;
+        message = "😔 El oponente ganó. ¡Inténtalo de nuevo!";
         messageType = "error";
       } else {
         message = "🤝 Empate";
@@ -468,7 +443,6 @@ export function highlightPlayableTiles() {
   const playableTiles = getCurrentPlayerPlayableTiles();
   const playableIds = playableTiles.map((p) => p.tile.id);
 
-  // Usar setTimeout para asegurar que el DOM esté actualizado
   setTimeout(() => {
     document.querySelectorAll(".player-tile").forEach((tileEl) => {
       const tileId = tileEl.dataset.id;
@@ -563,7 +537,6 @@ export function showDialog(title, content, buttons = []) {
   modalContainer.innerHTML = modalHTML;
   document.body.appendChild(modalContainer);
 
-  // Añadir estilos si no existen
   if (!document.querySelector("#modal-styles")) {
     const styles = document.createElement("style");
     styles.id = "modal-styles";
@@ -676,7 +649,6 @@ function createLoader() {
         <div class="loader-message" style="margin-top: 20px; color: #333;"></div>
     `;
 
-  // Añadir estilos para el spinner
   const spinnerStyles = document.createElement("style");
   spinnerStyles.textContent = `
         .spinner {

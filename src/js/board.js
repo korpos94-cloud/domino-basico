@@ -36,25 +36,25 @@ export function canPlayLeft(board, tile) {
   // Si la mesa está vacía, cualquier ficha es válida
   if (board.leftValue === null && board.rightValue === null) {
     return {
-      tile,
+      tile: tile,
       side: "left",
       needsRotate: false,
       valid: true,
     };
   }
 
-  // Verificar si el lado A coincide con leftValue
-  if (tile.a === board.leftValue) {
-    return {
-      tile,
-      side: "left",
-      needsRotate: false,
-      valid: true,
-    };
-  }
-
-  // Verificar si el lado B coincide con leftValue
+  // Verificar si el lado B coincide con leftValue (la ficha se conecta por su lado B)
   if (tile.b === board.leftValue) {
+    return {
+      tile: tile,
+      side: "left",
+      needsRotate: false,
+      valid: true,
+    };
+  }
+
+  // Verificar si el lado A coincide con leftValue (necesita rotar para conectar por B)
+  if (tile.a === board.leftValue) {
     return {
       tile: { ...tile, a: tile.b, b: tile.a }, // Ficha rotada
       side: "left",
@@ -76,25 +76,25 @@ export function canPlayRight(board, tile) {
   // Si la mesa está vacía, cualquier ficha es válida
   if (board.leftValue === null && board.rightValue === null) {
     return {
-      tile,
+      tile: tile,
       side: "right",
       needsRotate: false,
       valid: true,
     };
   }
 
-  // Verificar si el lado B coincide con rightValue
-  if (tile.b === board.rightValue) {
-    return {
-      tile,
-      side: "right",
-      needsRotate: false,
-      valid: true,
-    };
-  }
-
-  // Verificar si el lado A coincide con rightValue
+  // Verificar si el lado A coincide con rightValue (la ficha se conecta por su lado A)
   if (tile.a === board.rightValue) {
+    return {
+      tile: tile,
+      side: "right",
+      needsRotate: false,
+      valid: true,
+    };
+  }
+
+  // Verificar si el lado B coincide con rightValue (necesita rotar para conectar por A)
+  if (tile.b === board.rightValue) {
     return {
       tile: { ...tile, a: tile.b, b: tile.a }, // Ficha rotada
       side: "right",
@@ -113,6 +113,7 @@ export function canPlayRight(board, tile) {
  * @returns {BoardState} Nuevo estado de la mesa
  */
 export function placeLeft(board, playInfo) {
+  // La ficha en playInfo.tile ya viene rotada si needsRotate=true
   const newTile = playInfo.tile;
   const newBoard = {
     ...board,
@@ -137,7 +138,8 @@ export function placeLeft(board, playInfo) {
     newBoard.leftValue = newTile.a;
     newBoard.rightValue = newTile.b;
   } else {
-    // Ficha adicional - el extremo izquierdo se actualiza al otro valor de la ficha
+    // Ficha adicional - el extremo izquierdo queda con el valor A de la nueva ficha
+    // El valor B de la nueva ficha debe coincidir con leftValue anterior
     newBoard.leftValue = newTile.a;
   }
 
@@ -151,6 +153,7 @@ export function placeLeft(board, playInfo) {
  * @returns {BoardState} Nuevo estado de la mesa
  */
 export function placeRight(board, playInfo) {
+  // La ficha en playInfo.tile ya viene rotada si needsRotate=true
   const newTile = playInfo.tile;
   const newBoard = {
     ...board,
@@ -175,7 +178,8 @@ export function placeRight(board, playInfo) {
     newBoard.leftValue = newTile.a;
     newBoard.rightValue = newTile.b;
   } else {
-    // Ficha adicional - el extremo derecho se actualiza al otro valor de la ficha
+    // Ficha adicional - el extremo derecho queda con el valor B de la nueva ficha
+    // El valor A de la nueva ficha debe coincidir con rightValue anterior
     newBoard.rightValue = newTile.b;
   }
 
@@ -297,6 +301,3 @@ export function resetBoard(board) {
     ],
   };
 }
-
-
-

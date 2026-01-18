@@ -1,7 +1,7 @@
 /* 
  * DOMINÓ - Tiles CSS
  * Estilos base para fichas de dominó
- * Implementa: solapamiento, responsive, diferenciación visual
+ * CORRECCIONES: Superposición inteligente, fichas dentro de contenedores, tamaños consistentes
  */
 
 /* ===========================================
@@ -14,6 +14,7 @@
   align-items: center;
   position: relative;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
 }
 
 .domino-tile {
@@ -32,7 +33,7 @@
 }
 
 /* ===========================================
-   TAMAÑOS RESPONSIVE (5d: automático según pantalla)
+   TAMAÑOS RESPONSIVE - TODAS LAS FICHAS
    =========================================== */
 
 /* Desktop grande (default) */
@@ -66,7 +67,7 @@
 }
 
 /* ===========================================
-   ORIENTACIÓN (8d: inteligente según espacio)
+   ORIENTACIÓN
    =========================================== */
 
 .tile-vertical .domino-tile {
@@ -95,19 +96,87 @@
 }
 
 /* ===========================================
-   MANO DEL JUGADOR (2a: superpuestas si no caben)
+   CONTENEDORES DE MANOS
    =========================================== */
 
+.player-hand-tiles,
+.opponent-hand-tiles {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  overflow: visible;
+  width: 100%;
+  height: 100%;
+  padding: 0 10px;
+}
+
+/* ===========================================
+   MANO DEL JUGADOR - SUPERPOSICIÓN INTELIGENTE
+   =========================================== */
+
+.player-hand-area .hand-content {
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 10px 0;
+}
+
+/* Sin superposición por defecto */
 .player-hand-area .tile-wrapper {
-  margin-left: -25px;
+  margin-right: 10px;
   z-index: 1;
 }
 
-.player-hand-area .tile-wrapper:first-child {
-  margin-left: 0;
+.player-hand-area .tile-wrapper:last-child {
+  margin-right: 0;
 }
 
-/* Cada ficha tiene z-index creciente para efecto cascada */
+/* SUPERPOSICIÓN INTELIGENTE: Solo cuando hay más de 5 fichas */
+@media (max-width: 1200px) {
+  .player-hand-area .player-hand-tiles {
+    justify-content: flex-start;
+  }
+  
+  .player-hand-area .tile-wrapper {
+    margin-right: -25px;
+  }
+  
+  .player-hand-area .tile-wrapper:last-child {
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .player-hand-area .tile-wrapper {
+    margin-right: -20px;
+  }
+  
+  .player-hand-area .tile-wrapper:last-child {
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .player-hand-area .tile-wrapper {
+    margin-right: -18px;
+  }
+  
+  .player-hand-area .tile-wrapper:last-child {
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 400px) {
+  .player-hand-area .tile-wrapper {
+    margin-right: -15px;
+  }
+  
+  .player-hand-area .tile-wrapper:last-child {
+    margin-right: 0;
+  }
+}
+
+/* Z-index en cascada para superposición */
 .player-hand-area .tile-wrapper:nth-child(1) { z-index: 1; }
 .player-hand-area .tile-wrapper:nth-child(2) { z-index: 2; }
 .player-hand-area .tile-wrapper:nth-child(3) { z-index: 3; }
@@ -115,33 +184,53 @@
 .player-hand-area .tile-wrapper:nth-child(5) { z-index: 5; }
 .player-hand-area .tile-wrapper:nth-child(6) { z-index: 6; }
 .player-hand-area .tile-wrapper:nth-child(7) { z-index: 7; }
-
-/* Ajuste de solapamiento en móviles */
-@media (max-width: 600px) {
-  .player-hand-area .tile-wrapper {
-    margin-left: -20px;
-  }
-  .player-hand-area .tile-wrapper:first-child {
-    margin-left: 0;
-  }
-}
-
-@media (max-width: 400px) {
-  .player-hand-area .tile-wrapper {
-    margin-left: -15px;
-  }
-  .player-hand-area .tile-wrapper:first-child {
-    margin-left: 0;
-  }
-}
+.player-hand-area .tile-wrapper:nth-child(8) { z-index: 8; }
+.player-hand-area .tile-wrapper:nth-child(9) { z-index: 9; }
+.player-hand-area .tile-wrapper:nth-child(10) { z-index: 10; }
 
 /* ===========================================
-   FICHAS EN LA MESA (4b: serpiente adaptativa)
+   FICHAS EN LA MESA - TODAS HORIZONTALES
    =========================================== */
 
+.board-track {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px;
+  overflow-x: auto;
+  overflow-y: visible;
+  width: 100%;
+}
+
 .board-track .tile-wrapper {
-  margin: 2px;
+  margin: 0;
   flex-shrink: 0;
+}
+
+/* Scroll horizontal suave en mesa */
+.board-track {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.5) rgba(30, 41, 59, 0.3);
+}
+
+.board-track::-webkit-scrollbar {
+  height: 8px;
+}
+
+.board-track::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.3);
+  border-radius: 4px;
+}
+
+.board-track::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.5);
+  border-radius: 4px;
+}
+
+.board-track::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.7);
 }
 
 /* Compactación automática cuando hay muchas fichas */
@@ -150,20 +239,36 @@
 }
 
 /* ===========================================
-   MANO DEL OPONENTE (1a: boca abajo / ocultas)
+   MANO DEL OPONENTE - FICHAS OCULTAS
    =========================================== */
 
+.ai-hand-area .hand-content {
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 10px 0;
+}
+
 .ai-hand-area .tile-wrapper {
-  margin-left: -15px;
+  margin-right: -15px;
   filter: grayscale(0.3) brightness(0.85);
   opacity: 0.9;
+  z-index: 1;
 }
 
-.ai-hand-area .tile-wrapper:first-child {
-  margin-left: 0;
+.ai-hand-area .tile-wrapper:last-child {
+  margin-right: 0;
 }
 
-/* Efecto de fichas ocultas: oscurecer los puntos */
+/* Z-index en cascada */
+.ai-hand-area .tile-wrapper:nth-child(1) { z-index: 1; }
+.ai-hand-area .tile-wrapper:nth-child(2) { z-index: 2; }
+.ai-hand-area .tile-wrapper:nth-child(3) { z-index: 3; }
+.ai-hand-area .tile-wrapper:nth-child(4) { z-index: 4; }
+.ai-hand-area .tile-wrapper:nth-child(5) { z-index: 5; }
+.ai-hand-area .tile-wrapper:nth-child(6) { z-index: 6; }
+.ai-hand-area .tile-wrapper:nth-child(7) { z-index: 7; }
+
+/* Efecto de fichas ocultas */
 .ai-hand-area .domino-tile rect {
   fill: #64748b !important;
 }
@@ -172,27 +277,28 @@
   fill: #475569 !important;
 }
 
-/* Ajuste de solapamiento en móviles */
 @media (max-width: 600px) {
   .ai-hand-area .tile-wrapper {
-    margin-left: -12px;
+    margin-right: -12px;
   }
-  .ai-hand-area .tile-wrapper:first-child {
-    margin-left: 0;
+  
+  .ai-hand-area .tile-wrapper:last-child {
+    margin-right: 0;
   }
 }
 
 @media (max-width: 400px) {
   .ai-hand-area .tile-wrapper {
-    margin-left: -10px;
+    margin-right: -10px;
   }
-  .ai-hand-area .tile-wrapper:first-child {
-    margin-left: 0;
+  
+  .ai-hand-area .tile-wrapper:last-child {
+    margin-right: 0;
   }
 }
 
 /* ===========================================
-   DIFERENCIACIÓN VISUAL (3c + 7b)
+   DIFERENCIACIÓN VISUAL
    =========================================== */
 
 /* Fichas del jugador: crema/marfil con puntos negros */
@@ -216,7 +322,7 @@
 }
 
 /* ===========================================
-   INFORMACIÓN DE FICHA (opcional)
+   INFORMACIÓN DE FICHA
    =========================================== */
 
 .tile-info {
@@ -242,7 +348,6 @@
   background: rgba(0, 0, 0, 0.9);
 }
 
-/* Ocultar tile-info en móviles pequeños */
 @media (max-width: 600px) {
   .tile-info {
     font-size: 8px;
@@ -294,10 +399,10 @@
 }
 
 /* ===========================================
-   ANIMACIONES DE ENTRADA
+   ANIMACIONES DE ENTRADA - UN SOLO PARPADEO
    =========================================== */
 
-/* Ficha recién colocada en mesa */
+/* Ficha recién colocada en mesa - UN SOLO PARPADEO */
 @keyframes tileAppear {
   0% {
     opacity: 0;
@@ -314,6 +419,7 @@
 
 .board-track .tile-wrapper.new-tile {
   animation: tileAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation-iteration-count: 1;
 }
 
 /* Ficha robada del pozo */
@@ -330,10 +436,11 @@
 
 .player-hand-area .tile-wrapper.drawn {
   animation: tileDrawn 0.4s ease-out;
+  animation-iteration-count: 1;
 }
 
 /* ===========================================
-   MODO OSCURO (preferencia del sistema)
+   MODO OSCURO
    =========================================== */
 
 @media (prefers-color-scheme: dark) {
@@ -365,10 +472,9 @@
   }
 }
 
-/* Focus para navegación por teclado (futuro) */
+/* Focus para navegación por teclado */
 .tile-wrapper:focus-visible {
   outline: 3px solid #3b82f6;
   outline-offset: 4px;
   border-radius: 12px;
 }
-

@@ -31,10 +31,9 @@ import {
  * @property {number} opponentScore - Puntuación del oponente
  * @property {boolean} isBlocked - Si el juego está bloqueado
  * @property {Object} options - Opciones de configuración
- * @property {number} round - Número de ronda actual
- * @property {number} playerWins - Victorias del jugador
- * @property {number} opponentWins - Victorias del oponente
- * @property {Object|null} pendingPlay - Jugada pendiente para selección de lado
+ * @property {number} round - Número de ronda actual (nuevo para FASE 2)
+ * @property {number} playerWins - Victorias del jugador (nuevo para FASE 2)
+ * @property {number} opponentWins - Victorias del oponente (nuevo para FASE 2)
  */
 
 // Estado global del juego
@@ -53,6 +52,7 @@ export function initGame(options = {}) {
     tilesPerPlayer = 7,
     startingPlayer = "random",
     enableHints = true,
+    // Nuevas opciones para FASE 2 (preparación)
     totalRounds = 1,
     currentRound = 1,
   } = options;
@@ -70,6 +70,7 @@ export function initGame(options = {}) {
   if (startingPlayer === "random") {
     currentPlayer = Math.random() > 0.5 ? "player" : "opponent";
   } else if (startingPlayer === "double") {
+    // El jugador con el doble más alto comienza
     const playerDoubles = playerHand.filter((t) => isDouble(t));
     const opponentDoubles = opponentHand.filter((t) => isDouble(t));
 
@@ -86,6 +87,7 @@ export function initGame(options = {}) {
       playerHighestDouble >= opponentHighestDouble ? "player" : "opponent";
   }
 
+  // Inicializar estado del juego con estructura para FASE 2
   gameState = {
     phase: "playing",
     currentPlayer,
@@ -98,11 +100,12 @@ export function initGame(options = {}) {
     playerScore: 0,
     opponentScore: 0,
     isBlocked: false,
+    // Para FASE 2 (sistema de rondas)
     round: currentRound,
     totalRounds: totalRounds,
     playerWins: 0,
     opponentWins: 0,
-    pendingPlay: null, // Para selección de lado
+    // Opciones
     options: {
       tilesPerPlayer,
       enableHints,
@@ -132,7 +135,7 @@ export function getGameState() {
 /**
  * Intenta que el jugador coloque una ficha
  * @param {string} tileId - ID de la ficha a colocar
- * @param {string} side - Lado donde colocar: 'left', 'right', o null para auto-detectar
+ * @param {string} side - Lado donde colocar: 'left' o 'right'
  * @returns {boolean} True si la jugada fue exitosa
  */
 export function playerPlay(tileId, side = null) {
@@ -154,32 +157,46 @@ export function playerPlay(tileId, side = null) {
 
   const tile = gameState.playerHand[tileIndex];
 
-  // Validar jugadas posibles
-  const leftPlay = canPlayLeft(gameState.board, tile);
-  const rightPlay = canPlayRight(gameState.board, tile);
-
-  // Si no se especificó lado y la ficha puede jugarse en ambos lados
-  if (!side && leftPlay && rightPlay) {
-    // Guardar jugada pendiente para que el jugador elija lado
-    gameState.pendingPlay = {
-      tile,
-      tileIndex,
-      leftPlay,
-      rightPlay,
+  // CORRECCIÓN CRÍTICA: Si la mesa está vacía, colocar automáticamente sin validar lado
+  if (gameState.board.tiles.length === 0) {
+    const playInfo = {
+      tile: tile,
+      side: "left",
+      needsRotate: false,
+      valid: true,
     };
-    console.log("⚠️ Ficha puede jugarse en ambos lados. Requiere selección.");
-    return false; // UI debe manejar selección de lado
+
+    const newBoard = placeLeft(gameState.board, playInfo);
+
+    const newPlayerHand = [...gameState.playerHand];
+    newPlayerHand.splice(tileIndex, 1);
+
+    gameState = {
+      ...gameState,
+      playerHand: newPlayerHand,
+      board: newBoard,
+      lastAction: `player_played_${tileId}_first`,
+      currentPlayer: "opponent",
+    };
+
+    // Verificar si el jugador ganó
+    if (newPlayerHand.length === 0) {
+      const opponentScore = calculateHandScore(gameState.opponentHand);
+      endGame("player", opponentScore);
+      return true;
+    }
+
+    console.log("✅ Jugador jugó primera ficha:", tileId);
+    return true;
   }
 
-  // Determinar jugada según lado especificado o disponible
+  // Validar jugada en mesa no vacía
   let playInfo = null;
-  if (side === "left" && leftPlay) {
-    playInfo = leftPlay;
-  } else if (side === "right" && rightPlay) {
-    playInfo = rightPlay;
-  } else if (!side) {
-    // Auto-detectar: preferir izquierda si solo hay una opción
-    playInfo = leftPlay || rightPlay;
+  if (side === "left" || side === null) {
+    playInfo = canPlayLeft(gameState.board, tile);
+  }
+  if ((side === "right" || (side === null && !playInfo)) && !playInfo) {
+    playInfo = canPlayRight(gameState.board, tile);
   }
 
   if (!playInfo) {
@@ -205,7 +222,6 @@ export function playerPlay(tileId, side = null) {
     board: newBoard,
     lastAction: `player_played_${tileId}_${playInfo.side}`,
     currentPlayer: "opponent",
-    pendingPlay: null, // Limpiar jugada pendiente
   };
 
   // Verificar si el jugador ganó
@@ -223,38 +239,6 @@ export function playerPlay(tileId, side = null) {
 }
 
 /**
- * Obtiene la jugada pendiente de selección de lado
- * @returns {Object|null} Información de jugada pendiente
- */
-export function getPendingPlay() {
-  return gameState?.pendingPlay || null;
-}
-
-/**
- * Confirma una jugada pendiente con el lado seleccionado
- * @param {string} side - 'left' o 'right'
- * @returns {boolean} True si la jugada fue exitosa
- */
-export function confirmPendingPlay(side) {
-  if (!gameState?.pendingPlay) {
-    console.warn("No hay jugada pendiente");
-    return false;
-  }
-
-  const { tile } = gameState.pendingPlay;
-  return playerPlay(tile.id, side);
-}
-
-/**
- * Cancela una jugada pendiente
- */
-export function cancelPendingPlay() {
-  if (gameState) {
-    gameState.pendingPlay = null;
-  }
-}
-
-/**
  * Hace que el oponente IA juegue una ficha
  * @returns {Object|null} Información de la jugada realizada
  */
@@ -268,6 +252,39 @@ export function aiPlay() {
     return null;
   }
 
+  // Si la mesa está vacía, colocar primera ficha automáticamente
+  if (gameState.board.tiles.length === 0) {
+    const tile = gameState.opponentHand[0];
+    const playInfo = {
+      tile: tile,
+      side: "left",
+      needsRotate: false,
+      valid: true,
+    };
+
+    const newBoard = placeLeft(gameState.board, playInfo);
+
+    const newOpponentHand = [...gameState.opponentHand];
+    newOpponentHand.shift();
+
+    gameState = {
+      ...gameState,
+      opponentHand: newOpponentHand,
+      board: newBoard,
+      lastAction: `opponent_played_${tile.id}_first`,
+      currentPlayer: "player",
+    };
+
+    if (newOpponentHand.length === 0) {
+      const playerScore = calculateHandScore(gameState.playerHand);
+      endGame("opponent", playerScore);
+      return { action: "play", tile, side: "left", winner: "opponent" };
+    }
+
+    console.log("🤖 Oponente jugó primera ficha:", tile.id);
+    return { action: "play", tile, side: "left" };
+  }
+
   // Estrategia IA simple: jugar la primera ficha válida
   const playableTiles = getPlayableTiles(
     gameState.board,
@@ -278,25 +295,25 @@ export function aiPlay() {
     // No puede jugar, intentar robar del pozo
     if (gameState.stock.length > 0) {
       const drawnTile = drawTileForOpponent();
+      gameState.lastAction = "opponent_drew_tile";
       
-      // Verificar si después de robar puede jugar
+      // CORRECCIÓN: Después de robar, verificar si puede jugar la ficha robada
       const playableAfterDraw = getPlayableTiles(
         gameState.board,
         gameState.opponentHand
       );
       
-      if (playableAfterDraw.length === 0) {
-        // No puede jugar después de robar, pasar turno
-        gameState.lastAction = "opponent_drew_and_passed";
+      if (playableAfterDraw.length > 0) {
+        // Puede jugar después de robar, mantener su turno
+        console.log("🤖 Oponente robó ficha y puede jugar");
+        // Recursión para jugar inmediatamente
+        return aiPlay();
+      } else {
+        // No puede jugar ni después de robar, pasa turno
         gameState.currentPlayer = "player";
-        console.log("🤖 Oponente robó ficha y pasó turno");
-        return { action: "draw_and_pass", tile: drawnTile };
+        console.log("🤖 Oponente robó ficha pero no puede jugar, pasa turno");
+        return { action: "draw", tile: drawnTile };
       }
-      
-      // Puede jugar después de robar, intentar jugar
-      gameState.lastAction = "opponent_drew_tile";
-      console.log("🤖 Oponente robó ficha del pozo");
-      return { action: "draw", tile: drawnTile };
     } else {
       // Pasar turno
       gameState.lastAction = "opponent_passed";
@@ -357,7 +374,6 @@ export function aiPlay() {
 
 /**
  * Roba una ficha del pozo para el jugador
- * CORREGIDO: Mantiene turno si puede jugar después de robar
  * @returns {Object|null} Ficha robada o null si no hay fichas
  */
 export function playerDrawTile() {
@@ -378,17 +394,21 @@ export function playerDrawTile() {
   const drawnTile = gameState.stock.pop();
   gameState.playerHand.push(drawnTile);
   gameState.lastAction = "player_drew_tile";
-
-  // Verificar si después de robar el jugador tiene fichas jugables
-  const playableAfterDraw = getPlayableTiles(gameState.board, gameState.playerHand);
   
-  if (playableAfterDraw.length === 0) {
-    // No tiene fichas jugables después de robar, pasar turno automáticamente
-    gameState.currentPlayer = "opponent";
-    console.log("🎯 Jugador robó ficha:", drawnTile.id, "- Sin jugadas, turno pasa a oponente");
+  // CORRECCIÓN: Después de robar, verificar si puede jugar la ficha robada
+  const playableAfterDraw = getPlayableTiles(
+    gameState.board,
+    gameState.playerHand
+  );
+  
+  if (playableAfterDraw.length > 0) {
+    // Puede jugar después de robar, mantener su turno
+    console.log("🎯 Jugador robó ficha y puede jugar");
+    // No cambiar turno
   } else {
-    // Tiene fichas jugables, mantener turno para que pueda jugar
-    console.log("🎯 Jugador robó ficha:", drawnTile.id, "- Puede jugar");
+    // No puede jugar ni después de robar, pasa turno
+    gameState.currentPlayer = "opponent";
+    console.log("🎯 Jugador robó ficha pero no puede jugar, pasa turno");
   }
 
   return drawnTile;
@@ -404,43 +424,6 @@ function drawTileForOpponent() {
   const drawnTile = gameState.stock.pop();
   gameState.opponentHand.push(drawnTile);
   return drawnTile;
-}
-
-/**
- * Permite al jugador pasar turno
- * CORREGIDO: Permite pasar sin restricciones de pozo
- * @returns {boolean} True si el turno se pasó exitosamente
- */
-export function playerPassTurn() {
-  if (
-    !gameState ||
-    gameState.phase !== "playing" ||
-    gameState.currentPlayer !== "player"
-  ) {
-    console.warn("No es el turno del jugador");
-    return false;
-  }
-
-  // Verificar si tiene fichas jugables
-  const playableTiles = getPlayableTiles(gameState.board, gameState.playerHand);
-  
-  if (playableTiles.length > 0) {
-    console.warn("No puedes pasar: tienes fichas jugables");
-    return false;
-  }
-
-  // Si hay fichas en el pozo, debe robar primero
-  if (gameState.stock.length > 0) {
-    console.warn("No puedes pasar: debes robar del pozo primero");
-    return false;
-  }
-
-  // Pasar turno
-  gameState.currentPlayer = "opponent";
-  gameState.lastAction = "player_passed";
-  console.log("⏭️ Jugador pasó turno");
-  
-  return true;
 }
 
 /**
