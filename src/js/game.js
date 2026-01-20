@@ -15,6 +15,7 @@ import {
   isGameBlocked,
   countRemainingTilesWithValue,
 } from "./board.js";
+import { selectBestMove, setAIDifficulty, getAIDifficulty } from "./ai.js";
 
 /**
  * Estado global del juego
@@ -285,13 +286,10 @@ export function aiPlay() {
     return { action: "play", tile, side: "left" };
   }
 
-  // Estrategia IA simple: jugar la primera ficha válida
-  const playableTiles = getPlayableTiles(
-    gameState.board,
-    gameState.opponentHand
-  );
+  // Usar sistema de IA con 3 niveles
+  const bestMove = selectBestMove(gameState.board, gameState.opponentHand);
 
-  if (playableTiles.length === 0) {
+  if (!bestMove) {
     // No puede jugar, intentar robar del pozo
     if (gameState.stock.length > 0) {
       const drawnTile = drawTileForOpponent();
@@ -323,13 +321,11 @@ export function aiPlay() {
     }
   }
 
-  // Seleccionar ficha para jugar (estrategia simple: primera disponible)
-  const selectedPlay = playableTiles[0];
-  const tile = selectedPlay.tile;
+  // Usar la jugada seleccionada por la IA
+  const tile = bestMove.tile;
+  const side = bestMove.side;
   const tileIndex = gameState.opponentHand.findIndex((t) => t.id === tile.id);
 
-  // Usar el primer lado disponible
-  const side = selectedPlay.sides[0];
   let playInfo;
 
   if (side === "left") {
@@ -613,10 +609,10 @@ export function getGameStats() {
   return {
     phase: gameState.phase,
     currentPlayer: gameState.currentPlayer,
-    playerTiles: gameState.playerHand.length,
-    opponentTiles: gameState.opponentHand.length,
-    stockTiles: gameState.stock.length,
-    boardTiles: gameState.board.tiles.length,
+    playerTilesCount: gameState.playerHand.length,
+    opponentTilesCount: gameState.opponentHand.length,
+    stockCount: gameState.stock.length,
+    boardCount: gameState.board.tiles.length,
     playerPlayableTiles: playerPlayable.length,
     opponentPlayableTiles: opponentPlayable.length,
     playerScore: gameState.playerScore,
@@ -627,5 +623,15 @@ export function getGameStats() {
     totalRounds: gameState.totalRounds,
     playerWins: gameState.playerWins,
     opponentWins: gameState.opponentWins,
+    aiDifficulty: getAIDifficulty(),
   };
+}
+
+/**
+ * Cambia la dificultad de la IA
+ * @param {string} difficulty - 'easy', 'medium', 'hard'
+ */
+export function changeAIDifficulty(difficulty) {
+  setAIDifficulty(difficulty);
+  console.log(`🎮 Dificultad de IA cambiada a: ${difficulty}`);
 }
