@@ -3,13 +3,22 @@
    Cache First, Network Fallback Strategy
    ======================================== */
 
-const CACHE_NAME = 'domino-cache-v1';
+const CACHE_NAME = 'domino-cache-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './style.css',
-  './script.js',
-  './manifest.json'
+  './manifest.json',
+  './src/css/layout.css',
+  './src/css/tiles.css',
+  './src/css/tiles-states.css',
+  './src/js/game.js',
+  './src/js/board.js',
+  './src/js/tiles.js',
+  './src/js/render.js',
+  './src/js/ui.js',
+  './src/js/ai.js',
+  './src/js/audio.js',
+  './src/js/confetti.js'
 ];
 
 // Instalación del Service Worker
