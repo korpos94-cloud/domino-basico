@@ -479,10 +479,211 @@ export function showNotification(text, type = "info") {
  */
 export function showMessage(text, type = "info") {
     if (!domRefs.message) return;
-    
+
     domRefs.message.innerHTML = `
         <div class="message ${type}">
             ${text}
         </div>
     `;
+}
+
+/**
+ * Muestra un modal con configuración personalizada
+ * @param {Object} config - Configuración del modal
+ * @param {string} config.title - Título del modal
+ * @param {string} config.body - Contenido HTML del cuerpo
+ * @param {string} config.icon - Emoji o icono opcional
+ * @param {string} config.type - Tipo de modal: 'success', 'error', 'warning', 'info'
+ * @param {Array} config.buttons - Array de botones [{text, callback, primary}]
+ */
+export function showModal(config) {
+    const overlay = document.getElementById('modalOverlay');
+    const container = document.getElementById('modalContainer');
+    const titleEl = document.getElementById('modalTitle');
+    const bodyEl = document.getElementById('modalBody');
+    const footerEl = document.getElementById('modalFooter');
+
+    if (!overlay || !container) {
+        console.warn('⚠️ Elementos de modal no encontrados');
+        return;
+    }
+
+    // Establecer tipo de modal (success, error, warning, info)
+    container.className = 'modal-container';
+    if (config.type) {
+        container.classList.add(`modal-${config.type}`);
+    }
+
+    // Establecer título (con icono opcional)
+    const titleContent = config.icon
+        ? `<span>${config.icon}</span><span>${config.title}</span>`
+        : config.title;
+    titleEl.innerHTML = titleContent;
+
+    // Establecer cuerpo
+    bodyEl.innerHTML = config.body;
+
+    // Crear botones
+    if (config.buttons && config.buttons.length > 0) {
+        footerEl.innerHTML = config.buttons.map(btn => {
+            const btnClass = btn.primary ? 'modal-btn btn-primary' : 'modal-btn btn-secondary';
+            return `
+                <button class="${btnClass}" data-action="${btn.action || 'close'}">
+                    ${btn.text}
+                </button>
+            `;
+        }).join('');
+
+        // Agregar event listeners a los botones
+        footerEl.querySelectorAll('button').forEach((btnEl, index) => {
+            btnEl.addEventListener('click', () => {
+                if (config.buttons[index].callback) {
+                    config.buttons[index].callback();
+                }
+                hideModal();
+            });
+        });
+    } else {
+        // Botón por defecto
+        footerEl.innerHTML = `
+            <button class="modal-btn btn-primary" onclick="hideGameModal()">
+                Aceptar
+            </button>
+        `;
+    }
+
+    // Mostrar modal
+    overlay.classList.add('show');
+
+    // Cerrar con Escape
+    const escapeHandler = (e) => {
+        if (e.key === 'Escape') {
+            hideModal();
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+
+    // Cerrar al hacer clic en el overlay
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            hideModal();
+        }
+    });
+}
+
+/**
+ * Oculta el modal activo
+ */
+export function hideModal() {
+    const overlay = document.getElementById('modalOverlay');
+    if (overlay) {
+        overlay.classList.remove('show');
+    }
+}
+
+/**
+ * Muestra un modal de victoria
+ * @param {string} winner - 'player' o 'opponent'
+ * @param {Object} stats - Estadísticas del juego
+ */
+export function showVictoryModal(winner, stats = {}) {
+    const isPlayerWin = winner === 'player';
+
+    const config = {
+        title: isPlayerWin ? '¡Victoria!' : 'Derrota',
+        icon: isPlayerWin ? '🏆' : '😔',
+        type: isPlayerWin ? 'success' : 'error',
+        body: `
+            <div class="modal-icon">${isPlayerWin ? '🎉' : '💔'}</div>
+            <p style="text-align: center; font-size: 1.2rem; font-weight: 600;">
+                ${isPlayerWin
+                    ? '¡Felicitaciones! Has ganado la partida'
+                    : 'La IA ha ganado esta vez'}
+            </p>
+            ${stats.playerScore !== undefined ? `
+                <div style="margin-top: 20px; display: flex; justify-content: space-around;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700; color: #3b82f6;">
+                            ${stats.playerScore}
+                        </div>
+                        <div style="font-size: 0.9rem; color: #94a3b8;">Tú</div>
+                    </div>
+                    <div style="font-size: 2rem; color: #64748b;">-</div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700; color: #ef4444;">
+                            ${stats.opponentScore}
+                        </div>
+                        <div style="font-size: 0.9rem; color: #94a3b8;">IA</div>
+                    </div>
+                </div>
+            ` : ''}
+        `,
+        buttons: [
+            {
+                text: 'Jugar de nuevo',
+                primary: true,
+                callback: () => {
+                    // El callback se manejará desde index.html
+                    const event = new CustomEvent('newGameRequested');
+                    document.dispatchEvent(event);
+                }
+            }
+        ]
+    };
+
+    showModal(config);
+}
+
+/**
+ * Muestra un modal de juego bloqueado
+ * @param {Object} stats - Estadísticas del juego
+ */
+export function showBlockedModal(stats = {}) {
+    const config = {
+        title: 'Juego Bloqueado',
+        icon: '🔒',
+        type: 'warning',
+        body: `
+            <div class="modal-icon">🚫</div>
+            <p style="text-align: center; font-size: 1.2rem; font-weight: 600;">
+                Ningún jugador puede mover
+            </p>
+            <p style="text-align: center; margin-top: 10px;">
+                El jugador con menos puntos gana
+            </p>
+            ${stats.playerPoints !== undefined && stats.opponentPoints !== undefined ? `
+                <div style="margin-top: 20px; display: flex; justify-content: space-around;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700; color: #3b82f6;">
+                            ${stats.playerPoints}
+                        </div>
+                        <div style="font-size: 0.9rem; color: #94a3b8;">Tus puntos</div>
+                    </div>
+                    <div style="font-size: 2rem; color: #64748b;">vs</div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700; color: #ef4444;">
+                            ${stats.opponentPoints}
+                        </div>
+                        <div style="font-size: 0.9rem; color: #94a3b8;">Puntos IA</div>
+                    </div>
+                </div>
+                <p style="text-align: center; margin-top: 16px; font-weight: 600; color: ${stats.playerPoints < stats.opponentPoints ? '#10b981' : '#ef4444'};">
+                    ${stats.playerPoints < stats.opponentPoints ? '¡Tú ganas! 🎉' : 'IA gana 😔'}
+                </p>
+            ` : ''}
+        `,
+        buttons: [
+            {
+                text: 'Nueva partida',
+                primary: true,
+                callback: () => {
+                    const event = new CustomEvent('newGameRequested');
+                    document.dispatchEvent(event);
+                }
+            }
+        ]
+    };
+
+    showModal(config);
 }

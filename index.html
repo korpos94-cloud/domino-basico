@@ -8,6 +8,14 @@
     />
     <title>Dominó - Juego Profesional</title>
 
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json" />
+    <meta name="theme-color" content="#00b894" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Dominó" />
+    <meta name="description" content="Juego de dominó profesional contra IA con 3 niveles de dificultad" />
+
     <!-- Estilos CSS en orden correcto -->
     <link rel="stylesheet" href="src/css/layout.css" />
     <link rel="stylesheet" href="src/css/tiles.css" />
@@ -164,6 +172,29 @@
       </footer>
     </div>
 
+    <!-- Canvas de confetti para celebraciones -->
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- Modal overlay -->
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal-container" id="modalContainer">
+        <div class="modal-header">
+          <h2 class="modal-title" id="modalTitle">Título</h2>
+          <button class="modal-close" id="modalClose" onclick="hideGameModal()">
+            <span aria-hidden="true">✕</span>
+          </button>
+        </div>
+        <div class="modal-body" id="modalBody">
+          <p>Contenido del modal</p>
+        </div>
+        <div class="modal-footer" id="modalFooter">
+          <button class="modal-btn btn-primary" id="modalPrimaryBtn" onclick="hideGameModal()">
+            Aceptar
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Scripts del juego -->
     <script type="module">
       // Importar módulos existentes
@@ -179,8 +210,9 @@
         getCurrentPlayerPlayableTiles,
         changeAIDifficulty
       } from './src/js/game.js'
-      import { initUI, updateUI, showMessage, highlightPlayableTiles } from './src/js/ui.js'
+      import { initUI, updateUI, showMessage, highlightPlayableTiles, showModal, hideModal, showVictoryModal, showBlockedModal } from './src/js/ui.js'
       import { initAudio, getAudioManager } from './src/js/audio.js'
+      import { initConfetti, launchConfetti, confettiBurst } from './src/js/confetti.js'
 
       // Variables globales para acceso desde HTML
       window.handleTileClick = handleTileClick
@@ -190,6 +222,7 @@
       window.handleNewGame = handleNewGame
       window.handleResetGame = handleResetGame
       window.handleDifficultyChange = handleDifficultyChange
+      window.hideGameModal = hideModal
 
       // Estado del juego
       let gameInterval = null
@@ -201,6 +234,9 @@
 
         // Inicializar audio
         audioManager = initAudio()
+
+        // Inicializar confetti
+        initConfetti()
 
         // Inicializar UI con referencias DOM actualizadas
         initUI({
@@ -225,7 +261,24 @@
         window.addEventListener('resize', autoScale)
         autoScale()
 
+        // Registrar Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('./service-worker.js')
+            .then((registration) => {
+              console.log('✅ Service Worker registrado:', registration.scope)
+            })
+            .catch((error) => {
+              console.warn('⚠️ Error registrando Service Worker:', error)
+            })
+        }
+
         console.log('✅ Juego inicializado')
+      })
+
+      // Event listener para nueva partida desde modal
+      document.addEventListener('newGameRequested', () => {
+        console.log('🎮 Nueva partida solicitada desde modal')
+        handleNewGame()
       })
 
       // Función de escalado automático
@@ -587,6 +640,8 @@
           // Juego terminado, reproducir sonido apropiado
           if (gameState.winner === 'player') {
             audioManager?.playSFX('win')
+            // Lanzar confetti para victoria del jugador
+            setTimeout(() => launchConfetti(4000), 300)
           } else if (gameState.winner === 'opponent') {
             audioManager?.playSFX('lose')
           } else if (gameState.isBlocked) {
@@ -596,6 +651,25 @@
           // Guardar puntuaciones
           saveScores(gameState.playerWins, gameState.opponentWins)
           updateUI()
+
+          // Mostrar modal de resultado con un pequeño delay
+          setTimeout(() => {
+            if (gameState.isBlocked) {
+              // Modal de juego bloqueado
+              const playerPoints = gameState.playerHand.reduce((sum, tile) => sum + tile.a + tile.b, 0)
+              const opponentPoints = gameState.opponentHand.reduce((sum, tile) => sum + tile.a + tile.b, 0)
+              showBlockedModal({
+                playerPoints,
+                opponentPoints
+              })
+            } else {
+              // Modal de victoria normal
+              showVictoryModal(gameState.winner, {
+                playerScore: gameState.playerWins,
+                opponentScore: gameState.opponentWins
+              })
+            }
+          }, 500)
         }
       }
 
