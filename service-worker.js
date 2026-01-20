@@ -3,7 +3,7 @@
    Cache First, Network Fallback Strategy
    ======================================== */
 
-const CACHE_NAME = 'domino-cache-v2';
+const CACHE_NAME = 'domino-cache-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
