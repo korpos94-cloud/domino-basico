@@ -32,9 +32,9 @@ let domRefs = {
  */
 const uiConfig = {
   tileSizes: {
-    board: { width: 50, height: 100 },
-    player: { width: 70, height: 140 },
-    opponent: { width: 50, height: 100 },
+    board: { width: 45, height: 90 },
+    player: { width: 60, height: 120 },
+    opponent: { width: 45, height: 90 },
     stock: { width: 40, height: 80 },
   },
   colors: {
