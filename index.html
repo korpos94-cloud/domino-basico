@@ -143,9 +143,6 @@
           </button>
         </div>
 
-        <!-- Área de mensajes -->
-        <div class="game-messages" id="gameMessage">Preparando juego...</div>
-
         <!-- Estadísticas del juego -->
         <div class="game-stats" id="gameStats">
           <div class="stat-row">
@@ -244,7 +241,7 @@
           playerHand: document.getElementById('playerHand'),
           opponentHand: document.getElementById('opponentHand'),
           stock: null,
-          message: document.getElementById('gameMessage'),
+          message: null,
           stats: document.getElementById('gameStats'),
           currentPlayer: document.getElementById('turnIndicator'),
           playerScore: document.getElementById('playerScore'),
@@ -309,7 +306,7 @@
       function handleTileClick(tileId) {
         const gameState = getGameState()
         if (!gameState || gameState.phase !== 'playing' || gameState.currentPlayer !== 'player') {
-          showMessage('No es tu turno', 'warning')
+          showHintTooltip('No es tu turno', 'warning', 2000)
           audioManager?.playSFX('invalid')
           return
         }
@@ -318,7 +315,7 @@
         const playableInfo = playableTiles.find(p => p.tile.id === tileId)
 
         if (!playableInfo) {
-          showMessage('Esta ficha no se puede jugar ahora', 'warning')
+          showHintTooltip('Esta ficha no se puede jugar ahora', 'error', 2500)
           audioManager?.playSFX('invalid')
           return
         }
@@ -474,13 +471,13 @@
       function handleDrawTile() {
         const gameState = getGameState()
         if (!gameState || gameState.currentPlayer !== 'player') {
-          showMessage('No puedes robar ahora', 'warning')
+          showHintTooltip('No puedes robar ahora', 'warning', 2000, document.getElementById('btn-draw'))
           audioManager?.playSFX('invalid')
           return
         }
 
         if (gameState.stock.length === 0) {
-          showMessage('El pozo está vacío', 'warning')
+          showHintTooltip('El pozo está vacío', 'warning', 2000, document.getElementById('btn-draw'))
           audioManager?.playSFX('invalid')
           return
         }
@@ -491,9 +488,9 @@
           const playableTiles = getCurrentPlayerPlayableTiles()
 
           if (playableTiles.length > 0) {
-            showMessage('Robaste una ficha. Puedes jugar.', 'info')
+            showHintTooltip('Robaste una ficha. Puedes jugar.', 'success', 2500)
           } else {
-            showMessage('Robaste una ficha. No puedes jugar, turno pasado.', 'info')
+            showHintTooltip('Robaste una ficha. No puedes jugar, turno pasado.', 'info', 2500)
             audioManager?.playSFX('pass')
           }
 
@@ -537,32 +534,128 @@
         } else {
           const playableTiles = getCurrentPlayerPlayableTiles()
           if (playableTiles.length > 0) {
-            showMessage('Tienes fichas jugables', 'warning')
+            showHintTooltip('Tienes fichas jugables', 'warning', 2500, document.getElementById('btn-pass'))
             audioManager?.playSFX('invalid')
           } else if (gameState.stock.length > 0) {
-            showMessage('Debes robar del pozo primero', 'warning')
+            showHintTooltip('Debes robar del pozo primero', 'warning', 2500, document.getElementById('btn-draw'))
             audioManager?.playSFX('invalid')
           }
         }
       }
 
+      // Sistema de Tooltips/Globos para Pistas
+      let currentTooltip = null
+      let tooltipTimeout = null
+
+      function showHintTooltip(message, type = 'info', duration = 3000, targetElement = null) {
+        // Ocultar tooltip anterior si existe
+        hideHintTooltip()
+
+        // Crear tooltip
+        const tooltip = document.createElement('div')
+        tooltip.className = `hint-tooltip ${type}`
+
+        // Iconos según el tipo
+        const icons = {
+          info: '💡',
+          error: '❌',
+          warning: '⚠️',
+          success: '✅'
+        }
+
+        tooltip.innerHTML = `
+          <span class="hint-icon">${icons[type] || icons.info}</span>
+          <span>${message}</span>
+          <button class="hint-close" onclick="hideHintTooltip()">✕</button>
+        `
+
+        document.body.appendChild(tooltip)
+        currentTooltip = tooltip
+
+        // Posicionar tooltip
+        const targetEl = targetElement || document.querySelector('.control-buttons')
+        if (targetEl) {
+          const rect = targetEl.getBoundingClientRect()
+          const tooltipRect = tooltip.getBoundingClientRect()
+
+          // Centrar horizontalmente sobre el elemento
+          let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2)
+          let top = rect.top - tooltipRect.height - 16
+
+          // Ajustar si se sale de la pantalla
+          if (left < 10) left = 10
+          if (left + tooltipRect.width > window.innerWidth - 10) {
+            left = window.innerWidth - tooltipRect.width - 10
+          }
+
+          // Si no hay espacio arriba, mostrar abajo
+          if (top < 10) {
+            top = rect.bottom + 16
+            tooltip.classList.add('position-top')
+          }
+
+          tooltip.style.left = `${left}px`
+          tooltip.style.top = `${top}px`
+        } else {
+          // Centrar en pantalla si no hay elemento objetivo
+          tooltip.style.left = '50%'
+          tooltip.style.top = '50%'
+          tooltip.style.transform = 'translate(-50%, -50%)'
+        }
+
+        // Mostrar con animación
+        setTimeout(() => tooltip.classList.add('show'), 10)
+
+        // Reproducir sonido
+        if (audioManager) {
+          if (type === 'error') audioManager.playSFX('invalid')
+          else if (type === 'success') audioManager.playSFX('place')
+          else audioManager.playSFX('click')
+        }
+
+        // Auto-ocultar después de la duración
+        if (duration > 0) {
+          tooltipTimeout = setTimeout(() => hideHintTooltip(), duration)
+        }
+      }
+
+      function hideHintTooltip() {
+        if (tooltipTimeout) {
+          clearTimeout(tooltipTimeout)
+          tooltipTimeout = null
+        }
+
+        if (currentTooltip) {
+          currentTooltip.classList.remove('show')
+          setTimeout(() => {
+            if (currentTooltip) {
+              currentTooltip.remove()
+              currentTooltip = null
+            }
+          }, 300)
+        }
+      }
+
+      // Hacer hideHintTooltip global para el botón de cerrar
+      window.hideHintTooltip = hideHintTooltip
+
       // Mostrar pista
       function handleHint() {
         const gameState = getGameState()
         if (!gameState || gameState.currentPlayer !== 'player') {
-          showMessage('No es tu turno', 'warning')
+          showHintTooltip('No es tu turno', 'warning', 2000)
           return
         }
 
         const playableTiles = getCurrentPlayerPlayableTiles()
         if (playableTiles.length === 0) {
           if (gameState.stock.length > 0) {
-            showMessage('No tienes fichas jugables. Debes robar.', 'info')
+            showHintTooltip('No tienes fichas jugables. Debes robar.', 'info', 3000)
           } else {
-            showMessage('No tienes fichas jugables. Debes pasar.', 'info')
+            showHintTooltip('No tienes fichas jugables. Debes pasar.', 'info', 3000)
           }
         } else {
-          showMessage(`Tienes ${playableTiles.length} ficha${playableTiles.length > 1 ? 's' : ''} jugable${playableTiles.length > 1 ? 's' : ''}`, 'info')
+          showHintTooltip(`Tienes ${playableTiles.length} ficha${playableTiles.length > 1 ? 's' : ''} jugable${playableTiles.length > 1 ? 's' : ''}`, 'success', 3000)
           highlightPlayableTiles()
 
           setTimeout(() => {
