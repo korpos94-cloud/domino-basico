@@ -15,8 +15,8 @@
   max-height: 100vh;
   overflow: hidden;
   background: transparent;
-  padding: 12px;
-  gap: 12px;
+  padding: 8px;
+  gap: 8px;
 }
 
 /* ===========================================
@@ -25,8 +25,8 @@
 
 .ai-hand-area {
   flex: 0 0 auto;
-  min-height: 100px;
-  max-height: 120px;
+  min-height: 150px;
+  max-height: 180px;
   background: rgba(22, 33, 62, 0.75);
   border: 2px solid rgba(59, 130, 246, 0.3);
   border-radius: 12px;
@@ -70,7 +70,7 @@
   justify-content: center;
   align-items: center;
   overflow: visible;
-  min-height: 60px;
+  min-height: 110px;
 }
 
 /* ===========================================
@@ -80,14 +80,14 @@
 
 .board-area {
   flex: 1;
-  min-height: 180px;
+  min-height: 120px;
   background: rgba(22, 33, 62, 0.85);
   border: 2px solid rgba(59, 130, 246, 0.4);
   border-radius: 16px;
-  padding: 14px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
@@ -287,8 +287,8 @@
 
 .player-hand-area {
   flex: 0 0 auto;
-  min-height: 130px;
-  max-height: 150px;
+  min-height: 180px;
+  max-height: 220px;
   background: rgba(22, 33, 62, 0.75);
   border: 2px solid rgba(0, 184, 148, 0.5);
   border-radius: 12px;
@@ -332,7 +332,7 @@
   justify-content: center;
   align-items: center;
   overflow: visible;
-  min-height: 80px;
+  min-height: 140px;
   padding: 4px 0;
 }
 
@@ -1101,4 +1101,124 @@
     padding: 10px 20px;
     font-size: 0.95rem;
   }
+}
+
+/* ===========================================
+   TOOLTIPS / GLOBOS DE PISTAS
+   =========================================== */
+
+.hint-tooltip {
+  position: fixed;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.5),
+              0 0 0 2px rgba(255, 255, 255, 0.2);
+  font-size: 0.95rem;
+  font-weight: 600;
+  max-width: 320px;
+  z-index: 10001;
+  opacity: 0;
+  transform: translateY(-10px) scale(0.9);
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none;
+  line-height: 1.5;
+}
+
+.hint-tooltip.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.hint-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #2563eb;
+}
+
+.hint-tooltip.position-top::before {
+  bottom: auto;
+  top: -8px;
+  border-top: none;
+  border-bottom: 10px solid #3b82f6;
+}
+
+.hint-tooltip .hint-icon {
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 1.2rem;
+}
+
+.hint-tooltip .hint-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  font-size: 1rem;
+  transition: background 0.2s ease;
+}
+
+.hint-tooltip .hint-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Variantes de color para tooltips */
+.hint-tooltip.error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.5),
+              0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.hint-tooltip.error::before {
+  border-top-color: #dc2626;
+}
+
+.hint-tooltip.error.position-top::before {
+  border-bottom-color: #ef4444;
+}
+
+.hint-tooltip.warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.5),
+              0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.hint-tooltip.warning::before {
+  border-top-color: #d97706;
+}
+
+.hint-tooltip.warning.position-top::before {
+  border-bottom-color: #f59e0b;
+}
+
+.hint-tooltip.success {
+  background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+  box-shadow: 0 8px 24px rgba(0, 184, 148, 0.5),
+              0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.hint-tooltip.success::before {
+  border-top-color: #00a085;
+}
+
+.hint-tooltip.success.position-top::before {
+  border-bottom-color: #00b894;
 }
