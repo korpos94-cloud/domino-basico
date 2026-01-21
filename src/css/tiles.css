@@ -116,8 +116,9 @@
    =========================================== */
 
 .player-hand-area .hand-content {
-  overflow-x: auto;
-  overflow-y: visible;
+  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overflow-y: hidden !important;
   padding: 10px 0;
 }
 
@@ -199,8 +200,9 @@
   gap: 8px;
   flex-wrap: wrap;
   padding: 8px;
-  overflow-x: auto;
-  overflow-y: visible;
+  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overflow-y: hidden !important;
   width: 100%;
 }
 
@@ -243,8 +245,9 @@
    =========================================== */
 
 .ai-hand-area .hand-content {
-  overflow-x: auto;
-  overflow-y: visible;
+  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overflow-y: hidden !important;
   padding: 10px 0;
 }
 
