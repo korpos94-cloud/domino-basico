@@ -13,7 +13,7 @@
   position: relative;
 }
 
-/* Indicador visual de ficha jugable */
+/* Indicador visual de ficha jugable - SIN ANIMACIÓN para eliminar parpadeo */
 .tile-playable::before {
   content: '';
   position: absolute;
@@ -29,18 +29,8 @@
   );
   border-radius: 14px;
   z-index: -1;
-  animation: playableGlow 2.5s ease-in-out infinite;
-}
-
-@keyframes playableGlow {
-  0%, 100% {
-    opacity: 0.4;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.02);
-  }
+  animation: none !important;
+  opacity: 0.6;
 }
 
 /* Borde brillante en fichas jugables */
@@ -119,26 +109,13 @@
 }
 
 .tile-selected .domino-tile {
-  filter: 
+  filter:
     drop-shadow(0 0 20px rgba(59, 130, 246, 0.8))
     drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
-  box-shadow: 
+  box-shadow:
     0 0 0 4px rgba(59, 130, 246, 0.9),
     0 0 30px rgba(59, 130, 246, 0.5);
-  animation: selectedPulse 1.8s ease-in-out infinite;
-}
-
-@keyframes selectedPulse {
-  0%, 100% {
-    box-shadow: 
-      0 0 0 4px rgba(59, 130, 246, 0.9),
-      0 0 25px rgba(59, 130, 246, 0.4);
-  }
-  50% {
-    box-shadow: 
-      0 0 0 4px rgba(59, 130, 246, 1),
-      0 0 35px rgba(59, 130, 246, 0.6);
-  }
+  animation: none !important;
 }
 
 /* ===========================================
@@ -159,7 +136,7 @@
    INDICADOR VISUAL DE PLAYABLE
    =========================================== */
 
-/* Punto indicador verde en esquina */
+/* Punto indicador verde en esquina - SIN ANIMACIÓN para eliminar parpadeo */
 .playable-indicator {
   position: absolute;
   top: 4px;
@@ -170,19 +147,8 @@
   border-radius: 50%;
   border: 2px solid white;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  animation: indicatorPulse 1.5s ease-in-out infinite;
+  animation: none !important;
   z-index: 10;
-}
-
-@keyframes indicatorPulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.2);
-    opacity: 0.8;
-  }
 }
 
 /* Responsive para el indicador */
@@ -219,16 +185,8 @@
    =========================================== */
 
 .tile-wrapper.highlighted {
-  animation: highlightFlash 0.8s ease-in-out 3;
-}
-
-@keyframes highlightFlash {
-  0%, 100% {
-    filter: brightness(1);
-  }
-  50% {
-    filter: brightness(1.3);
-  }
+  animation: none !important;
+  filter: brightness(1.15);
 }
 
 .tile-wrapper.highlighted .domino-tile {
@@ -276,9 +234,7 @@
    =========================================== */
 
 .tile-wrapper {
-  transition: 
-    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    z-index 0s;
+  transition: none !important;
 }
 
 .domino-tile {
