@@ -32,9 +32,9 @@ let domRefs = {
  */
 const uiConfig = {
   tileSizes: {
-    board: { width: 100, height: 200 },
-    player: { width: 80, height: 160 },
-    opponent: { width: 60, height: 120 },
+    board: { width: 50, height: 100 },
+    player: { width: 70, height: 140 },
+    opponent: { width: 50, height: 100 },
     stock: { width: 40, height: 80 },
   },
   colors: {
@@ -135,11 +135,6 @@ function updateBoard() {
                   orientation: "horizontal",
                 })}
                 <div class="tile-info">${tile.a}-${tile.b}</div>
-                ${
-                  uiConfig.animations.enabled
-                    ? '<div class="tile-glow"></div>'
-                    : ""
-                }
             </div>
         `;
   });
