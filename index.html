@@ -323,6 +323,26 @@
         // Sonido de click
         audioManager?.playSFX('click')
 
+        // Si es la primera ficha de la mesa, colocar automáticamente sin preguntar
+        if (gameState.board.tiles.length === 0) {
+          const side = playableInfo.sides[0] // Usar el primer lado disponible
+          const success = playerPlay(tileId, side)
+
+          if (success) {
+            audioManager?.playSFX('place')
+            updateUI()
+
+            setTimeout(() => {
+              if (getGameState()?.currentPlayer === 'opponent') {
+                aiPlay()
+                audioManager?.playSFX('place')
+                updateUI()
+              }
+            }, 1000)
+          }
+          return
+        }
+
         // Si la ficha puede jugarse en ambos lados, pedir confirmación
         if (playableInfo.sides.length > 1) {
           showSideSelectionDialog(tileId)
@@ -335,7 +355,6 @@
 
         if (success) {
           audioManager?.playSFX('place')
-          showMessage(`Jugaste la ficha en ${side === 'left' ? 'izquierda' : 'derecha'}`, 'success')
           updateUI()
 
           setTimeout(() => {
